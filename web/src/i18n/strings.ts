@@ -61,6 +61,25 @@ export const he = {
     },
   },
 
+  // Comparing two vehicles
+  compare: {
+    title: 'השוואת רכבים',
+    open: 'השוואה לרכב אחר',
+    intro: 'הנתונים מהמאגרים הרשמיים, זה לצד זה. שורות מודגשות הן שורות שבהן הרכבים שונים.',
+    legend: 'ההדגשה מסמנת הבדל בלבד — לא איזה רכב עדיף.',
+    pickTitle: 'לאיזה רכב להשוות?',
+    pickSubtitle: 'בחרו מהחיפושים האחרונים או הקלידו מספר לוחית',
+    pickConfirm: 'השוואה',
+    swap: 'החלפת צדדים',
+    rate: 'קצב נסועה',
+    attention: 'נקודות לבדיקה',
+    licenseExpired: 'פג תוקף',
+    licenseSoon: 'יפוג בקרוב',
+    licenseValid: 'בתוקף',
+    invalidTitle: 'אי אפשר להשוות',
+    invalidBody: 'להשוואה צריך שני מספרי לוחית תקינים ושונים זה מזה.',
+  },
+
   // Vehicle shown from the offline copy
   saved: {
     title: 'מידע שמור מ-{date}',

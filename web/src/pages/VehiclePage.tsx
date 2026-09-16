@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { t } from '@/i18n';
 import { isValidPlate, normalizePlate } from '@/lib/plate';
@@ -11,18 +11,12 @@ import {
 } from '@/api/queries';
 import { mapOfficialFields } from '@/api/mapper';
 import {
-  firstRoadYear,
   mapFeatures,
   mapHistory,
   mapModelSpec,
-  mapPrice,
   officialPowerAndWeight,
-  summarizeOwnership,
 } from '@/api/specMapper';
 import { estimateSpecs } from '@/lib/estimates';
-import { licenseStatus } from '@/lib/licenseStatus';
-import { mileageInsight, positiveNumber, vehicleName } from '@/lib/vehicleSummary';
-import { resolveManufacturer } from '@shared/manufacturer';
 import { loadSavedVehicle, saveVehicle } from '@/lib/savedVehicles';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useInView } from '@/hooks/useInView';
@@ -45,12 +39,8 @@ import { KeyFacts } from '@/components/KeyFacts';
 import { CompactVehicleBar } from '@/components/CompactVehicleBar';
 import { SavedNotice } from '@/components/SavedNotice';
 import { BuyerChecklist } from '@/components/BuyerChecklist';
-import { buildChecklist } from '@/lib/buyerChecklist';
-
-function clean(value: unknown): string | undefined {
-  const s = String(value ?? '').trim();
-  return s || undefined;
-}
+import { buildOverview } from '@/lib/vehicleOverview';
+import { ComparePicker } from '@/components/ComparePicker';
 
 export default function VehiclePage() {
   const params = useParams<{ plate: string }>();
@@ -82,7 +72,8 @@ export default function VehiclePage() {
     saveVehicle(live, liveExtra ?? null);
   }, [live, liveExtra, extraLoading]);
   const { data: image, isLoading: imageLoading } = useVehicleImage(data);
-  const { add } = useRecentSearches();
+  const { recent, add } = useRecentSearches();
+  const [pickingCompare, setPickingCompare] = useState(false);
 
   const officialFields = useMemo(
     () => (data ? mapOfficialFields(data.record) : []),
@@ -92,54 +83,25 @@ export default function VehiclePage() {
   const modelSpecFields = useMemo(() => mapModelSpec(extra?.modelSpec ?? null), [extra]);
   const features = useMemo(() => mapFeatures(extra?.modelSpec ?? null), [extra]);
   const historyFields = useMemo(() => mapHistory(extra?.history ?? null), [extra]);
-  const price = useMemo(() => mapPrice(extra?.price ?? []), [extra]);
-
-  const license = useMemo(
-    () => (data ? licenseStatus(data.record) : null),
-    [data]
+  const overview = useMemo(
+    () =>
+      data ? buildOverview(data, extra, { loading: extraLoading, error: extraError }) : null,
+    [data, extra, extraLoading, extraError]
   );
-
-  const name = useMemo(() => (data ? vehicleName(data.record) : null), [data]);
-  const year = data ? clean(data.record.shnat_yitzur) ?? null : null;
-
-  /** "טויוטה קורולה 2019" — used for the history list and the share text. */
-  const carName = [name, year].filter(Boolean).join(' ') || undefined;
-
-  const country = data ? resolveManufacturer(data.record)?.country : null;
-  const heroMeta = [
-    year,
-    clean(data?.record.ramat_gimur),
-    country ? t.vehicle.madeIn.replace('{country}', country) : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
 
   // Record what this plate actually is, so the recent-searches list on the home
   // screen reads as cars rather than as seven-digit numbers. This also covers
   // arriving straight at a shared link, which never passed through the home
   // screen's own "add".
   useEffect(() => {
-    if (!data) return;
+    if (!data || !overview) return;
     add(plate, {
       // The clean brand ("יונדאי"), not the registry's "יונדאי טורקיה".
-      make: resolveManufacturer(data.record)?.brand,
-      model: clean(data.record.kinuy_mishari),
-      year: clean(data.record.shnat_yitzur),
+      make: overview.brand ?? undefined,
+      model: overview.model ?? undefined,
+      year: overview.year ?? undefined,
     });
-  }, [add, data, plate]);
-
-  const ownership = useMemo(() => {
-    if (!data || !extra) return null;
-    return summarizeOwnership(
-      extra.ownership,
-      firstRoadYear(data.record, extra.history)
-    );
-  }, [data, extra]);
-
-  const mileage = useMemo(
-    () => (data && extra ? mileageInsight(data.record, extra.history) : null),
-    [data, extra]
-  );
+  }, [add, data, overview, plate]);
 
   // Feed the officially published power/weight into the estimate layer, so the
   // remaining derived numbers are arithmetic on real figures rather than
@@ -148,21 +110,6 @@ export default function VehiclePage() {
     if (!data) return [];
     return estimateSpecs(data.record, officialPowerAndWeight(extra?.modelSpec ?? null));
   }, [data, extra]);
-
-  const checklist = useMemo(
-    () =>
-      data
-        ? buildChecklist({
-            license,
-            isInactive: data.isInactive,
-            enrichment: extra,
-            enrichmentLoading: extraLoading,
-            ownership,
-            mileage,
-          })
-        : [],
-    [data, extra, extraLoading, license, mileage, ownership]
-  );
 
   const goHome = () => navigate('/', { replace: true });
 
@@ -236,20 +183,18 @@ export default function VehiclePage() {
     );
   }
 
-  if (!data) return null;
+  if (!data || !overview) return null;
 
-  const enrichmentFailed = extraError && !extra;
   const retryEnrichment = () => void refetchExtra();
   // Per-source failures: a failed join must never read as "no records".
-  const ownershipFailed = enrichmentFailed || Boolean(extra?.failed.includes('ownership'));
-  const historyFailed = enrichmentFailed || Boolean(extra?.failed.includes('history'));
+  const { enrichmentFailed, ownershipFailed, historyFailed } = overview;
 
   // Success. Two columns from tablet-landscape up: the summary (what the car is
   // and what to act on) beside the detail tables; one column on phones, in the
   // same reading order.
   return (
     <div className="screen">
-      <CompactVehicleBar plate={plate} name={name} visible={!plateInView} />
+      <CompactVehicleBar plate={plate} name={overview.name} visible={!plateInView} />
 
       <div className="screen__scroll vehicle-layout">
         <div className="vehicle-layout__summary reveal-stack">
@@ -264,8 +209,8 @@ export default function VehiclePage() {
 
           <VehicleHero
             plate={plate}
-            name={name}
-            meta={heroMeta}
+            name={overview.name}
+            meta={overview.meta}
             image={image}
             imageLoading={imageLoading}
             plateRef={plateRef}
@@ -281,29 +226,36 @@ export default function VehiclePage() {
           {/* Both of these are things to act on, so they precede the data. The
               licence comes from the main record and is here immediately; recalls
               arrive with the enrichment. */}
-          <LicenseBanner status={license} />
+          <LicenseBanner status={overview.license} />
           {extra && <RecallBanner recalls={extra.recalls} />}
 
           <KeyFacts
-            year={year}
-            fuel={clean(data.record.sug_delek_nm) ?? null}
-            km={positiveNumber(extra?.history?.kilometer_test_aharon)}
-            ownership={ownership}
-            mileage={mileage}
+            year={overview.year}
+            fuel={overview.fuel}
+            km={overview.km}
+            ownership={overview.ownership}
+            mileage={overview.mileage}
             loading={extraLoading}
             ownershipFailed={ownershipFailed}
             historyFailed={historyFailed}
           />
 
-          <BuyerChecklist items={checklist} />
+          <BuyerChecklist items={overview.checklist} />
+
+          <Button
+            label={t.compare.open}
+            icon="compare"
+            variant="secondary"
+            onClick={() => setPickingCompare(true)}
+          />
 
           {extraLoading ? (
             <Skeleton height={148} radius={16} />
           ) : (
             <>
-              <PriceCard price={price} />
+              <PriceCard price={overview.price} />
               <OwnershipCard
-                ownership={ownership}
+                ownership={overview.ownership}
                 loaded={extra !== undefined && !ownershipFailed}
               />
             </>
@@ -343,8 +295,19 @@ export default function VehiclePage() {
         </div>
       </div>
 
+      <ComparePicker
+        open={pickingCompare}
+        currentPlate={plate}
+        recent={recent}
+        onPick={(other) => {
+          setPickingCompare(false);
+          navigate(`/compare/${plate}/${other}`);
+        }}
+        onClose={() => setPickingCompare(false)}
+      />
+
       <div className="screen__actions screen__actions--row">
-        <ShareButton plate={plate} description={carName} />
+        <ShareButton plate={plate} description={overview.fullName ?? undefined} />
         <Button
           label={t.vehicle.searchAgain}
           icon="search"

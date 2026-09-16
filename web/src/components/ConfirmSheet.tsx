@@ -2,11 +2,12 @@
  * Bottom sheet that shows the OCR-detected digits in an editable plate field.
  * The user must confirm — we never search automatically after a scan.
  */
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useId, useState } from 'react';
 import { t } from '@/i18n';
 import { isValidPlate } from '@/lib/plate';
 import { PlateInput } from './PlateInput';
 import { Button } from './Button';
+import { useModal } from '@/hooks/useModal';
 
 interface ConfirmSheetProps {
   open: boolean;
@@ -29,49 +30,11 @@ export function ConfirmSheet({ open, initialPlate, onConfirm, onCancel }: Confir
   );
 }
 
-const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), [href], [tabindex]:not([tabindex="-1"])';
-
 function ConfirmDialog({ initialPlate, onConfirm, onCancel }: Omit<ConfirmSheetProps, 'open'>) {
   const [plate, setPlate] = useState(initialPlate);
-  const sheetRef = useRef<HTMLDivElement>(null);
+  const { ref: sheetRef, onKeyDown: trapFocus } = useModal<HTMLDivElement>(onCancel);
   const titleId = useId();
   const errorId = useId();
-
-  // Hand focus back to whatever opened the sheet (the capture button) on close.
-  // Captured during the first render: by the time any effect runs, autoFocus
-  // has already moved focus into the sheet.
-  const [opener] = useState(() => document.activeElement);
-  useEffect(
-    () => () => {
-      if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
-    },
-    [opener]
-  );
-
-  // Escape closes the sheet, matching the native modal's back-button behaviour.
-  useEffect(() => {
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onCancel]);
-
-  /** Keep Tab cycling inside the sheet, as aria-modal promises. */
-  const trapFocus = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Tab' || !sheetRef.current) return;
-    const focusable = Array.from(sheetRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
 
   const valid = isValidPlate(plate);
   const showError = !valid && plate.length > 0;

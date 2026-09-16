@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import HomePage from '@/pages/HomePage';
 import VehiclePage from '@/pages/VehiclePage';
+import ComparePage from '@/pages/ComparePage';
 // Order matters: base rules first, then the stylesheets that refine them.
 import '@/styles/app.css';
 import '@/styles/screens.css';
@@ -33,6 +34,9 @@ const queryClient = new QueryClient({
 /** Header title per route, mirroring the native Stack.Screen options. */
 function useScreenTitle(): { title: string; showBack: boolean; wide: boolean } {
   const { pathname } = useLocation();
+  if (pathname.startsWith('/compare/')) {
+    return { title: t.compare.title, showBack: true, wide: true };
+  }
   if (pathname.startsWith('/vehicle/')) {
     // The result screen has enough content to use a desktop's width.
     return { title: t.vehicle.officialTitle, showBack: true, wide: true };
@@ -69,6 +73,7 @@ function Chrome() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/vehicle/:plate" element={<VehiclePage />} />
+          <Route path="/compare/:a/:b" element={<ComparePage />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </main>
