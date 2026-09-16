@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { UPDATE_EVENT } from './components/UpdateBanner';
+import { initMonitoring } from './lib/monitoring';
 // Self-hosted fonts: no third-party request, and they keep working offline in
 // the installed PWA. Only the Hebrew and Latin subsets, only the weights used.
 import '@fontsource/ibm-plex-sans-hebrew/hebrew-400.css';
@@ -16,6 +17,9 @@ import '@fontsource/ibm-plex-sans-hebrew/latin-600.css';
 import '@fontsource/ibm-plex-sans-hebrew/latin-700.css';
 import '@fontsource/barlow-condensed/latin-600.css';
 import '@fontsource/barlow-condensed/latin-700.css';
+
+// No-op without VITE_SENTRY_DSN; never blocks rendering.
+void initMonitoring().catch(() => {});
 
 const container = document.getElementById('root');
 if (!container) throw new Error('#root element is missing from index.html');

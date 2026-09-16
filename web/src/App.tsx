@@ -1,6 +1,8 @@
 import { Suspense, lazy } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { isNotFound } from '@/api/queries';
+import { reportError } from '@/lib/monitoring';
 import { t } from '@/i18n';
 import { ToastProvider } from '@/hooks/useToast';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
@@ -21,6 +23,14 @@ import '@/styles/motion.css';
 const ScanPage = lazy(() => import('@/pages/ScanPage'));
 
 const queryClient = new QueryClient({
+  // A failing data source is worth knowing about; a plate that simply isn't
+  // in the registry is an ordinary answer, and an aborted request is neither.
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      if (isNotFound(error) || (error instanceof DOMException && error.name === 'AbortError')) return;
+      reportError(error, { kind: 'query', query: String(query.queryKey[0]) });
+    },
+  }),
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,

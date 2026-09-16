@@ -8,6 +8,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { t } from '@/i18n';
 import { StateView } from './StateView';
+import { reportError } from '@/lib/monitoring';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -25,9 +26,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // No analytics service here, so the console is the only record. Keep the
-    // component stack — it is what makes such a report actionable.
-    console.error('Unhandled render error', error, info.componentStack);
+    // Keep the component stack — it is what makes such a report actionable.
+    reportError(error, { kind: 'render', componentStack: info.componentStack });
   }
 
   render(): ReactNode {

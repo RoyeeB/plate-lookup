@@ -5,7 +5,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'sha256-JjE5LnrvAw232W+7wayhgjPhXBQ0LZdiIKRis20VDdA=' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob:; connect-src 'self' https://data.gov.il https://en.wikipedia.org https://he.wikipedia.org https://cdn.jsdelivr.net; img-src 'self' data: blob: https://upload.wikimedia.org https://thumb.wikimedia.org; style-src 'self'; font-src 'self'; media-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self' 'sha256-JjE5LnrvAw232W+7wayhgjPhXBQ0LZdiIKRis20VDdA=' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob:; connect-src 'self' https://data.gov.il https://en.wikipedia.org https://he.wikipedia.org https://cdn.jsdelivr.net https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io; img-src 'self' data: blob: https://upload.wikimedia.org https://thumb.wikimedia.org; style-src 'self'; font-src 'self'; media-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         },
         {
           "key": "X-Content-Type-Options",
