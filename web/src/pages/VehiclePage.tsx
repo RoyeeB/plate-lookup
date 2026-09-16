@@ -44,6 +44,8 @@ import { VehicleHero } from '@/components/VehicleHero';
 import { KeyFacts } from '@/components/KeyFacts';
 import { CompactVehicleBar } from '@/components/CompactVehicleBar';
 import { SavedNotice } from '@/components/SavedNotice';
+import { BuyerChecklist } from '@/components/BuyerChecklist';
+import { buildChecklist } from '@/lib/buyerChecklist';
 
 function clean(value: unknown): string | undefined {
   const s = String(value ?? '').trim();
@@ -146,6 +148,21 @@ export default function VehiclePage() {
     if (!data) return [];
     return estimateSpecs(data.record, officialPowerAndWeight(extra?.modelSpec ?? null));
   }, [data, extra]);
+
+  const checklist = useMemo(
+    () =>
+      data
+        ? buildChecklist({
+            license,
+            isInactive: data.isInactive,
+            enrichment: extra,
+            enrichmentLoading: extraLoading,
+            ownership,
+            mileage,
+          })
+        : [],
+    [data, extra, extraLoading, license, mileage, ownership]
+  );
 
   const goHome = () => navigate('/', { replace: true });
 
@@ -277,6 +294,8 @@ export default function VehiclePage() {
             ownershipFailed={ownershipFailed}
             historyFailed={historyFailed}
           />
+
+          <BuyerChecklist items={checklist} />
 
           {extraLoading ? (
             <Skeleton height={148} radius={16} />

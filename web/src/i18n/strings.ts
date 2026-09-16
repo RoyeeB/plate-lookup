@@ -6,6 +6,61 @@
 export const he = {
   appName: 'איתור לוחית',
 
+  // "Before you buy" checklist
+  checklist: {
+    title: 'צ\'קליסט לקונה',
+    subtitle: 'ריכוז העובדות מהמאגרים. לא מחליף בדיקה במכון או אצל מוסכניק.',
+    summaryAttention: '{n} נקודות לבדיקה',
+    summaryOne: 'נקודה אחת לבדיקה',
+    summaryNone: 'לא נמצאו נקודות לבדיקה במאגרים',
+    loading: 'טוען…',
+    unavailable: 'אין מידע במאגר',
+    statusOk: 'תקין',
+    statusAttention: 'לבדיקה',
+    statusUnknown: 'לא ידוע',
+    statusPending: 'בטעינה',
+    inactive: {
+      title: 'סטטוס הרכב',
+      detail: 'הרכב מופיע במאגר רכבים לא פעילים — ייתכן שהורד מהכביש.',
+    },
+    license: {
+      title: 'רישיון רכב (טסט)',
+      expired: 'פג תוקף ב-{date}.',
+      soon: 'יפוג {relative}.',
+      valid: 'בתוקף עד {date}.',
+    },
+    recall: {
+      title: 'ריקול',
+      open: '{n} קריאות שירות פתוחות שטרם בוצעו.',
+      none: 'אין ריקול פתוח.',
+    },
+    mileage: {
+      title: 'קילומטראז\'',
+      high: 'גבוה מהממוצע: {rate}.',
+      normal: 'בטווח הרגיל: {rate}.',
+      noData: 'אין מספיק נתונים לחישוב קצב שנתי.',
+    },
+    usage: {
+      title: 'שימוש קודם',
+      found: 'הרכב היה {kinds}.',
+      lease: 'רכב ליסינג',
+      rental: 'רכב השכרה',
+      and: ' ו',
+      none: 'לא נמצא שימוש בליסינג או בהשכרה.',
+      partial: 'חלק מהמידע על הבעלויות לא נטען.',
+    },
+    structure: {
+      title: 'שינוי מבנה',
+      yes: 'דווח על שינוי מבנה.',
+      no: 'לא דווח על שינוי מבנה.',
+    },
+    color: {
+      title: 'שינוי צבע',
+      yes: 'דווח על שינוי צבע.',
+      no: 'לא דווח על שינוי צבע.',
+    },
+  },
+
   // Vehicle shown from the offline copy
   saved: {
     title: 'מידע שמור מ-{date}',
