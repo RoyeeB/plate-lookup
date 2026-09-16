@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "Plate Lookup",
+    "slug": "plate-lookup",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "platelookup",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#111111"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.platelookup",
+      "infoPlist": {
+        "NSCameraUsageDescription": "האפליקציה משתמשת במצלמה כדי לצלם לוחית רישוי ולזהות את מספרה. התמונה מעובדת במכשיר בלבד ואינה נשלחת לאף שרת.",
+        "CFBundleAllowMixedLocalizations": true
+      }
+    },
+    "android": {
+      "package": "com.example.platelookup",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#111111"
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "האפליקציה משתמשת במצלמה כדי לצלם לוחית רישוי ולזהות את מספרה. התמונה מעובדת במכשיר בלבד ואינה נשלחת לאף שרת."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#111111"
+        }
+      ],
+      "./plugins/withMlKitTextRecognition",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {}
+    }
+  }
+}

@@ -1,0 +1,253 @@
+/* Camera scan screen: full-bleed video with a plate-shaped guide cutout. */
+
+.scan {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+.scan__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Cutout and hint are stacked in one centred column so the hint always sits a
+   fixed distance below the guide box, whatever the viewport shape. */
+.scan__guide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-xxl);
+  pointer-events: none;
+}
+
+/* The scrim is one element with a transparent plate-shaped hole punched out of
+   it via a box-shadow spread, so there is no seam between four separate bars.
+   The hint follows it in the DOM and therefore paints on top of that shadow. */
+.scan__cutout {
+  position: relative;
+  width: min(86vw, 420px);
+  aspect-ratio: var(--plate-aspect);
+  border-radius: var(--r-md);
+  box-shadow: 0 0 0 100vmax var(--overlay);
+}
+
+.scan__corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 0 solid var(--guide);
+}
+
+.scan__corner--tl {
+  top: -2px;
+  left: -2px;
+  border-top-width: 4px;
+  border-left-width: 4px;
+  border-top-left-radius: var(--r-md);
+}
+.scan__corner--tr {
+  top: -2px;
+  right: -2px;
+  border-top-width: 4px;
+  border-right-width: 4px;
+  border-top-right-radius: var(--r-md);
+}
+.scan__corner--bl {
+  bottom: -2px;
+  left: -2px;
+  border-bottom-width: 4px;
+  border-left-width: 4px;
+  border-bottom-left-radius: var(--r-md);
+}
+.scan__corner--br {
+  bottom: -2px;
+  right: -2px;
+  border-bottom-width: 4px;
+  border-right-width: 4px;
+  border-bottom-right-radius: var(--r-md);
+}
+
+.scan__hint {
+  position: relative;
+  margin: 0;
+  max-width: 32ch;
+  text-align: center;
+  color: #fff;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  padding: 0 var(--sp-xl);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.scan__top-bar {
+  position: absolute;
+  top: max(var(--sp-sm), env(safe-area-inset-top));
+  inset-inline: var(--sp-lg);
+  display: flex;
+  justify-content: flex-start;
+}
+
+.scan__icon-button {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+}
+
+.scan__bottom-bar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: max(var(--sp-xl), env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+}
+
+.scan__shutter {
+  width: 78px;
+  height: 78px;
+  border-radius: var(--r-pill);
+  border: 5px solid #fff;
+  background: rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.scan__shutter:disabled {
+  opacity: 0.6;
+}
+
+.scan__shutter-inner {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--r-pill);
+  background: var(--plate-yellow);
+}
+
+.scan__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-lg);
+  color: #fff;
+}
+
+.scan__overlay-text {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.scan__error-sheet {
+  position: absolute;
+  inset-inline: var(--sp-lg);
+  bottom: calc(var(--sp-xxl) + env(safe-area-inset-bottom));
+  background: var(--background);
+  border-radius: var(--r-xl);
+  padding: var(--sp-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-md);
+  color: var(--text);
+}
+
+.scan__error-text {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+}
+
+.scan__error-actions {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-sm);
+}
+
+/* ---------- Confirm sheet ---------- */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border: none;
+  padding: 0;
+}
+
+.sheet {
+  width: 100%;
+  max-width: var(--app-max-width);
+  background: var(--background);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: var(--sp-xl);
+  padding-bottom: calc(var(--sp-xl) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  animation: sheet-up 0.2s ease-out;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
+
+.sheet__handle {
+  align-self: center;
+  width: 44px;
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: var(--border);
+  margin-bottom: var(--sp-sm);
+}
+
+.sheet__title {
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  text-align: center;
+  margin: 0;
+}
+
+.sheet__subtitle {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0 0 var(--sp-sm);
+}
+
+.sheet__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-sm);
+}

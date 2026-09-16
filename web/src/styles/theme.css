@@ -1,0 +1,74 @@
+/**
+ * Design tokens, ported 1:1 from the native app's src/theme/index.ts so the
+ * web build stays visually identical. Keep every color / spacing / radius
+ * value here.
+ */
+:root {
+  color-scheme: light;
+
+  /* Israeli plate motif */
+  --plate-yellow: #f4c400;
+  --plate-yellow-dark: #d9ae00;
+  --plate-black: #111111;
+  --plate-blue: #0033a0;
+
+  /* Surfaces */
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #f3f4f6;
+  --surface-estimate: #eef2ff;
+
+  /* Text */
+  --text: #111827;
+  --text-secondary: #6b7280;
+
+  /* Lines / borders */
+  --border: #e5e7eb;
+  --border-strong: #111111;
+
+  /* Accents / states */
+  --primary: #111827;
+  --info: #4f46e5;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+
+  /* Camera overlay */
+  --overlay: rgba(0, 0, 0, 0.55);
+  --guide: #f4c400;
+
+  /* Skeleton */
+  --skeleton-base: #e5e7eb;
+
+  /* Spacing */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-xxl: 32px;
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* Font sizes */
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-xxl: 28px;
+  --fs-plate: 40px;
+
+  /* Israeli plate ≈ 520mm x 110mm */
+  --plate-aspect: 4.727;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* Phone-width column the whole app is centred in, like the native screen. */
+  --app-max-width: 560px;
+}
