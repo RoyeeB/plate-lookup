@@ -65,7 +65,7 @@ const CELLS: ReadonlyArray<{ id: string; label: string; cell: Cell }> = [
   },
   {
     id: 'price',
-    label: t.price.label,
+    label: t.price.title,
     cell: (o) =>
       o.price
         ? o.price.maxAmount

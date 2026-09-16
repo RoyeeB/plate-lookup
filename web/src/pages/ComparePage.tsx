@@ -97,6 +97,7 @@ export default function ComparePage() {
       <div className="screen__actions screen__actions--row">
         <Button
           label={t.compare.swap}
+          title={t.compare.swapLabel}
           variant="secondary"
           icon="refresh"
           onClick={() => navigate(`/compare/${plateB}/${plateA}`, { replace: true })}

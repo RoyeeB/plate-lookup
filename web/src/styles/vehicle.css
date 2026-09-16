@@ -498,7 +498,22 @@
   text-decoration: none;
 }
 
-.compare__car-link:hover .compare__car-name {
+.compare__car-link:hover /* A full-size badge is wider than a phone column; a compact one fits. */
+.compare__car .plate-badge {
+  max-width: 100%;
+  padding: 2px var(--sp-xs);
+}
+
+.compare__car .plate-badge__strip {
+  display: none;
+}
+
+.compare__car .plate-badge__digits {
+  font-size: clamp(15px, 4.4vw, 22px);
+  letter-spacing: 0.5px;
+}
+
+.compare__car-name {
   text-decoration: underline;
 }
 
@@ -536,6 +551,12 @@
 .compare__row--differs .compare__value {
   font-weight: 700;
   background: var(--surface-estimate);
+}
+
+@media (min-width: 600px) {
+  .compare__car .plate-badge__strip {
+    display: flex;
+  }
 }
 
 @media (min-width: 960px) {
