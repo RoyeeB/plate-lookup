@@ -3,13 +3,27 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+// Self-hosted fonts: no third-party request, and they keep working offline in
+// the installed PWA. Only the Hebrew and Latin subsets, only the weights used.
+import '@fontsource/ibm-plex-sans-hebrew/hebrew-400.css';
+import '@fontsource/ibm-plex-sans-hebrew/hebrew-500.css';
+import '@fontsource/ibm-plex-sans-hebrew/hebrew-600.css';
+import '@fontsource/ibm-plex-sans-hebrew/hebrew-700.css';
+import '@fontsource/ibm-plex-sans-hebrew/latin-400.css';
+import '@fontsource/ibm-plex-sans-hebrew/latin-500.css';
+import '@fontsource/ibm-plex-sans-hebrew/latin-600.css';
+import '@fontsource/ibm-plex-sans-hebrew/latin-700.css';
+import '@fontsource/barlow-condensed/latin-600.css';
+import '@fontsource/barlow-condensed/latin-700.css';
 
 const container = document.getElementById('root');
 if (!container) throw new Error('#root element is missing from index.html');
 
 createRoot(container).render(
   <StrictMode>
-    <BrowserRouter>
+    {/* Synchronous route commits: the plate morph (lib/motion.ts) snapshots the
+        new screen right after navigating, which a transition would defer. */}
+    <BrowserRouter useTransitions={false}>
       <App />
     </BrowserRouter>
   </StrictMode>

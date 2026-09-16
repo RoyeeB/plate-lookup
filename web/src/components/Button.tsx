@@ -29,12 +29,15 @@ export function Button({
       type="button"
       className={`btn btn--${variant}`}
       disabled={isDisabled}
-      aria-label={label}
       aria-busy={loading || undefined}
       {...rest}
     >
       {loading ? (
-        <span className="spinner" aria-hidden="true" />
+        <>
+          <span className="spinner" aria-hidden="true" />
+          {/* The visible label is swapped for a spinner; keep the name for AT. */}
+          <span className="visually-hidden">{label}</span>
+        </>
       ) : (
         <>
           {icon && <Icon name={icon} size={22} />}

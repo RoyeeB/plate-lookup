@@ -42,7 +42,7 @@
 
 .license__title {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -77,6 +77,16 @@
   color: var(--text-secondary);
 }
 
+.enrichment-note--failed {
+  background: var(--enrichment-failed-bg);
+  border: 1px solid var(--enrichment-failed-border);
+}
+
+/* Only the icon takes the amber: body text in it would fail contrast. */
+.enrichment-note--failed > svg {
+  color: var(--warning);
+}
+
 .enrichment-note__text {
   display: flex;
   flex-direction: column;
@@ -99,6 +109,11 @@
   font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--info);
+}
+
+.enrichment-note__retry:disabled {
+  color: var(--text-secondary);
+  cursor: progress;
 }
 
 /* ---------- Recent searches: plate + what the car actually is ---------- */

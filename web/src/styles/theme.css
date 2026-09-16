@@ -15,6 +15,8 @@
   /* Israeli plate motif — brand constants, same in light and dark. */
   --plate-yellow: #f4c400;
   --plate-yellow-dark: #d9ae00;
+  /* Top of the plate's lit gradient (hero badge, plate-styled buttons). */
+  --plate-yellow-light: #ffd83d;
   --plate-black: #111111;
   --plate-blue: #0033a0;
 
@@ -45,6 +47,7 @@
 
   /* Skeleton */
   --skeleton-base: #e5e7eb;
+  --skeleton-highlight: #f3f4f6;
 
   /* Spacing */
   --sp-xs: 4px;
@@ -61,6 +64,16 @@
   --r-xl: 24px;
   --r-pill: 999px;
 
+  /*
+   * Type. UI text is IBM Plex Sans Hebrew. Plates and headline figures use
+   * Barlow Condensed — DIN-derived, like the lettering on a real Israeli
+   * plate. Barlow has no Hebrew, so anything that can contain Hebrew stays in
+   * the UI face; the fallbacks keep the layout sane before the fonts load.
+   */
+  --font-ui: 'IBM Plex Sans Hebrew', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Noto Sans Hebrew', Arial, sans-serif;
+  --font-figures: 'Barlow Condensed', 'Arial Narrow', var(--font-ui);
+
   /* Font sizes */
   --fs-xs: 12px;
   --fs-sm: 14px;
@@ -68,7 +81,9 @@
   --fs-lg: 18px;
   --fs-xl: 22px;
   --fs-xxl: 28px;
-  --fs-plate: 40px;
+  --fs-plate: 48px;
+  /* Condensed figures read smaller than the UI face at the same size. */
+  --fs-figure: 34px;
 
   /* Israeli plate ≈ 520mm x 110mm */
   --plate-aspect: 4.727;
@@ -77,6 +92,37 @@
 
   /* Phone-width column the whole app is centred in, like the native screen. */
   --app-max-width: 560px;
+  /* The result screen widens to two columns on a desktop. */
+  --app-max-width-wide: 1120px;
+  /* Fixed so the compact vehicle bar can stick directly beneath it. */
+  --header-height: 64px;
+
+  /* Translucent chrome (header, bottom actions) over scrolling content. */
+  --chrome-bg: rgba(255, 255, 255, 0.82);
+
+  /* Lift under the hero plate, so it reads as an object on the card. */
+  --shadow-plate: 0 12px 28px -10px rgba(17, 17, 17, 0.45);
+  --shadow-lift: 0 8px 24px -8px rgba(17, 24, 39, 0.18);
+
+  /* Confirmation tint on a row that was just copied. */
+  --copied-bg: rgba(22, 163, 74, 0.16);
+
+  /* Soft plate-yellow light at the top of the page. */
+  --ambient-glow: rgba(244, 196, 0, 0.12);
+
+  /* Hero photo fades into the card. */
+  --hero-fade: #ffffff;
+
+  /* Mileage insight tints, one per band. */
+  --insight-low-bg: rgba(22, 163, 74, 0.08);
+  --insight-low-border: rgba(22, 163, 74, 0.25);
+  --insight-average-bg: rgba(79, 70, 229, 0.06);
+  --insight-average-border: rgba(79, 70, 229, 0.2);
+  --insight-high-bg: rgba(217, 119, 6, 0.1);
+  --insight-high-border: rgba(217, 119, 6, 0.3);
+
+  /* The camera screen is always dark, so this is not theme-aware. */
+  --scan-success: #22c55e;
 
   /*
    * Component-specific tokens for colours that used to be hard-coded in
@@ -102,6 +148,18 @@
    */
   --btn-primary-bg: #111111;
   --btn-primary-fg: #ffffff;
+
+  /*
+   * Disabled buttons get their own solid colours instead of a 50% opacity:
+   * fading a near-white CTA over a near-black page read as a broken grey
+   * smear in dark mode.
+   */
+  --btn-disabled-bg: #e5e7eb;
+  --btn-disabled-fg: #6b7280;
+
+  /* Whole-enrichment failure note. */
+  --enrichment-failed-bg: rgba(217, 119, 6, 0.1);
+  --enrichment-failed-border: rgba(217, 119, 6, 0.3);
 
   /* Text on a solid --warning fill, which is far brighter in dark mode. */
   --banner-warning-fg: #ffffff;
@@ -147,6 +205,21 @@
     --overlay: rgba(0, 0, 0, 0.6);
 
     --skeleton-base: #242830;
+    --skeleton-highlight: #30353f;
+
+    --chrome-bg: rgba(15, 17, 21, 0.8);
+    --shadow-plate: 0 14px 32px -10px rgba(0, 0, 0, 0.8);
+    --shadow-lift: 0 10px 28px -8px rgba(0, 0, 0, 0.7);
+    --hero-fade: #0f1115;
+    --ambient-glow: rgba(244, 196, 0, 0.07);
+    --copied-bg: rgba(74, 222, 128, 0.18);
+
+    --insight-low-bg: rgba(74, 222, 128, 0.12);
+    --insight-low-border: rgba(74, 222, 128, 0.32);
+    --insight-average-bg: rgba(129, 140, 248, 0.12);
+    --insight-average-border: rgba(129, 140, 248, 0.32);
+    --insight-high-bg: rgba(251, 191, 36, 0.14);
+    --insight-high-border: rgba(251, 191, 36, 0.38);
 
     --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.5);
     --shadow-shell: 0 0 40px rgba(0, 0, 0, 0.6);
@@ -166,6 +239,12 @@
     /* Inverted: a light button with dark text, so the CTA is still a button. */
     --btn-primary-bg: #f1f2f4;
     --btn-primary-fg: #111111;
+
+    --btn-disabled-bg: #22262d;
+    --btn-disabled-fg: #7d8591;
+
+    --enrichment-failed-bg: rgba(251, 191, 36, 0.15);
+    --enrichment-failed-border: rgba(251, 191, 36, 0.4);
 
     /* White on bright amber is ~1.9:1; near-black on it is ~10:1. */
     --banner-warning-fg: #111111;

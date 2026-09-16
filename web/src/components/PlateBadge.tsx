@@ -7,12 +7,20 @@ import { formatPlate } from '@/lib/plate';
 interface PlateBadgeProps {
   plate: string;
   size?: 'sm' | 'md' | 'lg';
+  /**
+   * The screen's main plate: gets the embossed look, the one-off sheen and the
+   * view-transition name the home screen's plate morphs into. At most one per
+   * screen.
+   */
+  hero?: boolean;
 }
 
-export function PlateBadge({ plate, size = 'md' }: PlateBadgeProps) {
+export function PlateBadge({ plate, size = 'md', hero = false }: PlateBadgeProps) {
   return (
-    <span className={`plate-badge plate-badge--${size}`}>
-      <span className="plate-badge__strip">IL</span>
+    <span className={`plate-badge plate-badge--${size}${hero ? ' plate-badge--hero' : ''}`}>
+      <span className="plate-badge__strip" aria-hidden="true">
+        IL
+      </span>
       <span className="plate-badge__digits">{formatPlate(plate)}</span>
     </span>
   );

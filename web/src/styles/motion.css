@@ -1,0 +1,506 @@
+/*
+ * All decorative motion in one place. Every animation here is opt-in via
+ * `prefers-reduced-motion: no-preference`, and nothing that carries a warning
+ * (role="alert": expired licence, recall, deregistered vehicle) is ever
+ * delayed — those must be readable on the first frame.
+ */
+
+/* ---------- Skeleton shimmer ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton,
+  .vehicle-hero__media--loading {
+    background: linear-gradient(
+      90deg,
+      var(--skeleton-base) 0%,
+      var(--skeleton-highlight) 50%,
+      var(--skeleton-base) 100%
+    );
+    background-size: 200% 100%;
+    /* -50% → 150% sweeps the highlight right-to-left, in reading direction. */
+    animation: shimmer 1.5s linear infinite;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -50% 0;
+  }
+  to {
+    background-position: 150% 0;
+  }
+}
+
+/* ---------- Staggered entrance ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-stack > * {
+    animation: reveal-up 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .reveal-stack > :nth-child(2) {
+    animation-delay: 50ms;
+  }
+  .reveal-stack > :nth-child(3) {
+    animation-delay: 100ms;
+  }
+  .reveal-stack > :nth-child(4) {
+    animation-delay: 150ms;
+  }
+  .reveal-stack > :nth-child(n + 5) {
+    animation-delay: 200ms;
+  }
+
+  /* The detail column follows the summary slightly. */
+  .vehicle-layout__detail.reveal-stack > * {
+    animation-delay: 120ms;
+  }
+
+  .reveal-stack > [role='alert'] {
+    animation: none;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* ---------- Hero plate: lit gradient, embossed digits, one sheen ---------- */
+.plate-badge--hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    var(--plate-yellow-light),
+    var(--plate-yellow) 55%,
+    var(--plate-yellow-dark)
+  );
+  /* Must match PLATE_TRANSITION_NAME in lib/motion.ts. */
+  view-transition-name: plate-hero;
+}
+
+.plate-badge--hero .plate-badge__digits {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5),
+    0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.plate-badge--hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .plate-badge--hero::after {
+    animation: plate-sheen 1.1s 0.45s ease-out both;
+  }
+}
+
+@keyframes plate-sheen {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+/* ---------- Licence cycle bar fills on arrival ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .license__cycle-fill {
+    animation: cycle-fill 0.9s 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@keyframes cycle-fill {
+  from {
+    inline-size: 0;
+  }
+}
+
+/* ---------- Plate morph between screens (View Transitions) ---------- */
+::view-transition-group(plate-hero) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* =========================================================================
+ * Second pass: interaction feedback and scroll depth.
+ * ========================================================================= */
+
+/* ---------- Plate field: "complete number" check ---------- */
+.plate-field__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-pill);
+  background: var(--plate-black);
+  color: var(--plate-yellow);
+  opacity: 0;
+  scale: 0.4;
+  transition:
+    opacity 0.18s ease,
+    scale 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.plate-field--valid .plate-field__check {
+  opacity: 1;
+  scale: 1;
+}
+
+/* ---------- Button icons respond to the pointer ---------- */
+.btn svg,
+.app-header__back svg {
+  transition:
+    translate 0.2s ease,
+    rotate 0.2s ease,
+    scale 0.2s ease;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .btn:hover:not(:disabled) svg {
+    scale: 1.12;
+    rotate: -8deg;
+  }
+
+  /* RTL: "back" points right, so it nudges right. */
+  .app-header__back:hover svg {
+    translate: 3px 0;
+  }
+
+  .recent__row:hover > svg {
+    translate: -3px 0;
+  }
+}
+
+.recent__row > svg {
+  transition: translate 0.2s ease;
+}
+
+/* ---------- Recent searches arrive in sequence ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .recent__list > li {
+    animation: reveal-up 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .recent__list > li:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .recent__list > li:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .recent__list > li:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .recent__list > li:nth-child(n + 5) {
+    animation-delay: 160ms;
+  }
+}
+
+/* ---------- Hero photo: settles in, then drifts slower than the page ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  /* Opacity/scale and translate are separate properties, so the entrance and
+     the scroll parallax compose instead of overwriting each other. */
+  .vehicle-hero__img {
+    animation: photo-in-soft 0.7s ease-out both;
+  }
+
+  @supports (animation-timeline: view()) {
+    .vehicle-hero__img {
+      animation:
+        photo-in-soft 0.7s ease-out both,
+        photo-parallax linear both;
+      animation-timeline: auto, view();
+      animation-range: normal, exit 0% exit 100%;
+    }
+  }
+}
+
+@keyframes photo-in-soft {
+  from {
+    opacity: 0;
+    scale: 1.06;
+  }
+}
+
+@keyframes photo-parallax {
+  to {
+    translate: 0 22%;
+  }
+}
+
+/* ---------- Detail cards reveal as they scroll into view ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .vehicle-layout__detail.reveal-stack > :not([role='alert']) {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+      animation-delay: 0s;
+    }
+  }
+}
+
+/* ---------- Mileage gauge ---------- */
+.facts__insight {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.facts__insight-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.gauge {
+  flex: none;
+  overflow: visible;
+  --gauge-accent: var(--insight-accent, var(--info));
+}
+
+.gauge__track,
+.gauge__fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.gauge__track {
+  stroke: var(--border);
+}
+
+.gauge__fill {
+  stroke: var(--gauge-accent);
+}
+
+.gauge__tick {
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.gauge__needle {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+}
+
+.gauge__needle line {
+  stroke: var(--text);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.gauge__hub {
+  fill: var(--text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gauge__needle {
+    animation: needle-sweep 1.1s 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  }
+
+  .gauge__fill {
+    animation: gauge-fill 1s 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@keyframes needle-sweep {
+  from {
+    rotate: -90deg;
+  }
+}
+
+@keyframes gauge-fill {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+/* ---------- Ownership chain draws itself ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .ownership__chain::before {
+    transform-origin: top;
+    animation: rail-draw 0.7s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .ownership__link {
+    animation: link-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .ownership__link:nth-child(1) {
+    animation-delay: 0.2s;
+  }
+  .ownership__link:nth-child(2) {
+    animation-delay: 0.3s;
+  }
+  .ownership__link:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  .ownership__link:nth-child(4) {
+    animation-delay: 0.5s;
+  }
+  .ownership__link:nth-child(n + 5) {
+    animation-delay: 0.6s;
+  }
+
+  .ownership__dot {
+    animation: dot-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: inherit;
+  }
+}
+
+@keyframes rail-draw {
+  from {
+    scale: 1 0;
+  }
+}
+
+@keyframes link-in {
+  from {
+    opacity: 0;
+    translate: -8px 0;
+  }
+}
+
+@keyframes dot-pop {
+  from {
+    scale: 0;
+  }
+}
+
+/* ---------- Equipment chips pop in ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .features__chip {
+    animation: chip-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .features__chip:nth-child(2n) {
+    animation-delay: 40ms;
+  }
+  .features__chip:nth-child(3n) {
+    animation-delay: 80ms;
+  }
+  .features__chip:nth-child(4n) {
+    animation-delay: 120ms;
+  }
+}
+
+@keyframes chip-pop {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+
+/* ---------- VIN copied ---------- */
+.spec-row--copyable {
+  border-radius: var(--r-sm);
+  transition: background-color 0.3s ease;
+}
+
+/* Beats app.css's `button.spec-row:hover`, since the pointer is still on the
+   row at the moment it's copied. */
+button.spec-row.spec-row--copied {
+  background: var(--copied-bg);
+}
+
+.spec-row__copy-icon {
+  display: inline-flex;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spec-row--copied .spec-row__copy-icon {
+    animation: chip-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+
+/* ---------- Expired licence: the icon asks for attention, immediately ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .license--expired > svg {
+    border-radius: var(--r-pill);
+    animation: alert-ring 1.2s ease-out 2;
+  }
+}
+
+@keyframes alert-ring {
+  0% {
+    box-shadow: 0 0 0 0 var(--license-expired-border);
+  }
+  100% {
+    box-shadow: 0 0 0 12px transparent;
+  }
+}
+
+/* ---------- Toast: springs in, fades out ---------- */
+.toast__body {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-pill);
+  background: var(--success);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toast__body {
+    animation: toast-spring 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .toast__body--leaving {
+    animation: toast-out 0.18s ease-in both;
+  }
+}
+
+@keyframes toast-spring {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+    scale: 0.92;
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+/* ---------- Print: everything visible, nothing mid-animation ---------- */
+@media print {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

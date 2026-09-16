@@ -8,7 +8,11 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Icon } from '@/components/Icon';
 import HomePage from '@/pages/HomePage';
 import VehiclePage from '@/pages/VehiclePage';
+// Order matters: base rules first, then the stylesheets that refine them.
 import '@/styles/app.css';
+import '@/styles/screens.css';
+import '@/styles/vehicle.css';
+import '@/styles/motion.css';
 
 // The scan screen pulls in tesseract.js — keep it out of the initial bundle.
 const ScanPage = lazy(() => import('@/pages/ScanPage'));
@@ -25,21 +29,22 @@ const queryClient = new QueryClient({
 });
 
 /** Header title per route, mirroring the native Stack.Screen options. */
-function useScreenTitle(): { title: string; showBack: boolean } {
+function useScreenTitle(): { title: string; showBack: boolean; wide: boolean } {
   const { pathname } = useLocation();
   if (pathname.startsWith('/vehicle/')) {
-    return { title: t.vehicle.officialTitle, showBack: true };
+    // The result screen has enough content to use a desktop's width.
+    return { title: t.vehicle.officialTitle, showBack: true, wide: true };
   }
-  return { title: t.appName, showBack: false };
+  return { title: t.appName, showBack: false, wide: false };
 }
 
 function Chrome() {
-  const { title, showBack } = useScreenTitle();
+  const { title, showBack, wide } = useScreenTitle();
   const { offline } = useNetworkStatus();
   const navigate = useNavigate();
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${wide ? ' app-shell--wide' : ''}`}>
       {offline && <div className="offline-banner">{t.states.offlineTitle}</div>}
       <header className="app-header">
         {showBack && (

@@ -9,9 +9,13 @@ import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { Button } from '@/components/Button';
 import { StateView } from '@/components/StateView';
 import { Icon } from '@/components/Icon';
+import { prefersReducedMotion } from '@/lib/motion';
 import '@/styles/scan.css';
 
-type ScanState = 'camera' | 'processing' | 'confirm' | 'error';
+type ScanState = 'camera' | 'processing' | 'detected' | 'confirm' | 'error';
+
+/** How long the green "got it" frame shows before the confirm sheet opens. */
+const DETECTED_FEEDBACK_MS = 450;
 
 export default function ScanPage() {
   const navigate = useNavigate();
@@ -20,6 +24,7 @@ export default function ScanPage() {
   const [state, setState] = useState<ScanState>('camera');
   const [detected, setDetected] = useState('');
   const { add } = useRecentSearches();
+  const feedbackTimer = useRef<number | undefined>(undefined);
 
   // Ask for the camera as soon as the screen opens, and warm the OCR engine in
   // the background so the first capture isn't stuck behind a model download.
@@ -31,6 +36,8 @@ export default function ScanPage() {
   // The worker holds a few tens of MB — drop it when leaving the screen.
   useEffect(() => () => void terminateOcr(), []);
 
+  useEffect(() => () => window.clearTimeout(feedbackTimer.current), []);
+
   const goBack = useCallback(() => {
     stop();
     navigate('/');
@@ -39,7 +46,7 @@ export default function ScanPage() {
   const runOcr = useCallback(async () => {
     const video = videoRef.current;
     const cutout = cutoutRef.current;
-    if (!video || !cutout || state === 'processing') return;
+    if (!video || !cutout || state !== 'camera') return;
 
     setState('processing');
     try {
@@ -59,7 +66,19 @@ export default function ScanPage() {
 
       if (plate) {
         setDetected(plate);
-        setState('confirm'); // never auto-search — user must confirm
+        // A beat of confirmation (green frame + a short buzz where supported)
+        // before the sheet covers the camera. Still never auto-searches — the
+        // user must confirm the digits.
+        navigator.vibrate?.(40);
+        if (prefersReducedMotion()) {
+          setState('confirm');
+        } else {
+          setState('detected');
+          feedbackTimer.current = window.setTimeout(
+            () => setState('confirm'),
+            DETECTED_FEEDBACK_MS
+          );
+        }
       } else {
         setState('error');
       }
@@ -119,7 +138,15 @@ export default function ScanPage() {
       />
 
       <div className="scan__guide">
-        <div className="scan__cutout" ref={cutoutRef}>
+        <div
+          className={`scan__cutout${state === 'detected' ? ' scan__cutout--detected' : ''}${
+            state === 'processing' ? ' scan__cutout--busy' : ''
+          }`}
+          ref={cutoutRef}
+        >
+          {state === 'camera' && status === 'ready' && (
+            <span className="scan__beam" aria-hidden="true" />
+          )}
           <span className="scan__corner scan__corner--tl" />
           <span className="scan__corner scan__corner--tr" />
           <span className="scan__corner scan__corner--bl" />
@@ -157,7 +184,7 @@ export default function ScanPage() {
           type="button"
           className="scan__shutter"
           onClick={() => void runOcr()}
-          disabled={state === 'processing' || status !== 'ready'}
+          disabled={state !== 'camera' || status !== 'ready'}
           aria-label={t.scan.capture}
         >
           <span className="scan__shutter-inner" />

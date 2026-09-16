@@ -1,5 +1,7 @@
+/* Only the tokens are @imported: an @import is hoisted above every rule in
+   this file, so a stylesheet of modifiers imported here would lose to the base
+   rules below it. The rest are imported after this file, in App.tsx. */
 @import './theme.css';
-@import './screens.css';
 
 /* ---------- Reset / base ---------- */
 *,
@@ -18,8 +20,7 @@ body {
   margin: 0;
   background: var(--surface-muted);
   color: var(--text);
-  font-family: 'Heebo', 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    'Noto Sans Hebrew', Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-md);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -36,12 +37,33 @@ button {
   outline-offset: 2px;
 }
 
+/* Present for screen readers, invisible on screen. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- App shell: a centred phone-width column ---------- */
 .app-shell {
   max-width: var(--app-max-width);
   min-height: 100%;
   margin: 0 auto;
   background: var(--background);
+  /* Fixed to the viewport top, so it stays a light source rather than
+     scrolling away with the first card. */
+  background-image: radial-gradient(
+    120% 420px at 50% -120px,
+    var(--ambient-glow),
+    transparent 70%
+  );
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-shell);
@@ -51,9 +73,13 @@ button {
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
-  padding: var(--sp-lg) var(--sp-xl);
+  height: var(--header-height);
+  padding: 0 var(--sp-xl);
   border-bottom: 1px solid var(--border);
   background: var(--background);
+  background: var(--chrome-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -61,7 +87,7 @@ button {
 
 .app-header__title {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -98,7 +124,9 @@ button {
 
 .screen__scroll {
   flex: 1;
-  overflow-y: auto;
+  /* No overflow of its own: the document is the scroller. An `overflow: auto`
+     here made this a scroll container that never scrolls, which silently
+     disabled every scroll-driven animation inside it. */
   padding: var(--sp-xl);
   display: flex;
   flex-direction: column;
@@ -114,12 +142,20 @@ button {
   gap: var(--sp-md);
   border-top: 1px solid var(--border);
   background: var(--background);
+  background: var(--chrome-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  /* The document scrolls, not .screen__scroll — without this a long result
+     page pushed the actions below the fold instead of keeping them in reach. */
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
 }
 
 /* ---------- Home header text ---------- */
 .home__title {
   font-size: var(--fs-xxl);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 var(--sp-sm);
   line-height: 1.25;
 }
@@ -135,6 +171,10 @@ button {
   font-size: var(--fs-sm);
   color: var(--danger);
   margin: 0;
+}
+
+.form-error--center {
+  text-align: center;
 }
 
 /* ---------- Plate input / badge ---------- */
@@ -155,7 +195,7 @@ button {
   justify-content: center;
   background: var(--plate-blue);
   color: #fff;
-  font-weight: 800;
+  font-weight: 700;
   border-radius: 4px;
   flex: none;
 }
@@ -167,13 +207,14 @@ button {
 }
 
 .plate-field__input {
+  font-family: var(--font-figures);
   flex: 1;
   min-width: 0;
   border: none;
   background: transparent;
   color: var(--plate-black);
   font-size: var(--fs-plate);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 4px;
   text-align: center;
   direction: ltr;
@@ -211,8 +252,9 @@ button {
 }
 
 .plate-badge__digits {
+  font-family: var(--font-figures);
   color: var(--plate-black);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 2px;
   direction: ltr;
   font-variant-numeric: tabular-nums;
@@ -223,14 +265,14 @@ button {
   padding: var(--sp-xs) var(--sp-sm);
 }
 .plate-badge--sm .plate-badge__digits {
-  font-size: var(--fs-lg);
+  font-size: 22px;
 }
 
 .plate-badge--md {
   padding: var(--sp-sm) var(--sp-md);
 }
 .plate-badge--md .plate-badge__digits {
-  font-size: var(--fs-xl);
+  font-size: 28px;
 }
 
 .plate-badge--lg {
@@ -253,7 +295,11 @@ button {
   border-radius: var(--r-lg);
   font-size: var(--fs-lg);
   font-weight: 700;
-  transition: opacity 0.12s ease, transform 0.12s ease, background-color 0.12s ease;
+  transition:
+    opacity 0.12s ease,
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .btn:active:not(:disabled) {
@@ -261,9 +307,16 @@ button {
   transform: scale(0.99);
 }
 
-.btn:disabled {
-  opacity: 0.5;
+/* A loading button is disabled too, but keeps its variant's look. */
+.btn:disabled:not([aria-busy='true']) {
+  background: var(--btn-disabled-bg);
+  border-color: var(--btn-disabled-bg);
+  color: var(--btn-disabled-fg);
   cursor: not-allowed;
+}
+
+.btn[aria-busy='true'] {
+  cursor: progress;
 }
 
 .btn--primary {
@@ -274,8 +327,10 @@ button {
 
 .btn--plate {
   background: var(--plate-yellow);
+  background: linear-gradient(180deg, var(--plate-yellow-light), var(--plate-yellow));
   border-color: var(--plate-black);
   color: var(--plate-black);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .btn--secondary {
@@ -292,6 +347,32 @@ button {
 
 .btn--ghost:hover:not(:disabled) {
   background: var(--surface-muted);
+}
+
+/* Touch screens would otherwise keep the hover look stuck after a tap. */
+@media (hover: hover) {
+  .btn--primary:hover:not(:disabled),
+  .btn--secondary:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  .btn--plate:hover:not(:disabled) {
+    background: linear-gradient(180deg, var(--plate-yellow), var(--plate-yellow-dark));
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  /* Re-stated after :hover so a press still reads as a press on a mouse. */
+  .btn:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+
+  .recent__row:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lift);
+  }
 }
 
 /* ---------- Recent searches ---------- */
@@ -311,7 +392,7 @@ button {
 
 .recent__title {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -324,10 +405,40 @@ button {
 }
 
 .recent__empty {
-  font-size: var(--fs-sm);
-  color: var(--text-secondary);
-  padding: var(--sp-md) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-xs);
+  text-align: center;
+  padding: var(--sp-xl) var(--sp-lg);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-lg);
+}
+
+.recent__empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--sp-sm);
+  border-radius: var(--r-pill);
+  background: var(--surface-muted);
+}
+
+.recent__empty-title {
   margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.recent__empty-body {
+  margin: 0;
+  max-width: 280px;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 .recent__list {
@@ -340,6 +451,10 @@ button {
 }
 
 .recent__row {
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   width: 100%;
   min-height: 56px;
   display: flex;
@@ -443,7 +558,7 @@ button.spec-row:hover {
 
 .estimates__title {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -468,8 +583,9 @@ button.spec-row:hover {
 }
 
 .estimates__value {
-  font-size: var(--fs-xl);
-  font-weight: 800;
+  font-family: var(--font-figures);
+  font-size: var(--fs-xxl);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -484,6 +600,10 @@ button.spec-row:hover {
   display: flex;
   justify-content: center;
   padding-top: var(--sp-sm);
+}
+
+.badge-header--spaced {
+  padding-top: var(--sp-xl);
 }
 
 .inactive-banner {
@@ -519,7 +639,7 @@ button.spec-row:hover {
 
 .state-view__title {
   font-size: var(--fs-xl);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -541,19 +661,15 @@ button.spec-row:hover {
 
 /* ---------- Skeleton ---------- */
 .skeleton {
-  background: var(--skeleton-base);
+  display: block;
   border-radius: 6px;
-  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  background: var(--skeleton-base);
 }
 
-@keyframes skeleton-pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 1;
-  }
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
 }
 
 .skeleton-card {
@@ -577,11 +693,19 @@ button.spec-row:hover {
   justify-content: space-between;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-    opacity: 0.7;
-  }
+
+.skeleton-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-xl) 0 var(--sp-sm);
+}
+
+.skeleton-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-sm);
 }
 
 /* ---------- Spinner ---------- */
@@ -610,7 +734,8 @@ button.spec-row:hover {
 .toast {
   position: fixed;
   inset-inline: 0;
-  bottom: calc(var(--sp-xxl) + env(safe-area-inset-bottom));
+  /* Clear of the sticky bottom action bar, which it would otherwise cover. */
+  bottom: calc(112px + env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
   pointer-events: none;
@@ -625,15 +750,9 @@ button.spec-row:hover {
   padding: var(--sp-md) var(--sp-xl);
   border-radius: var(--r-pill);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  animation: toast-in 0.18s ease-out;
 }
 
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
+
 
 /* ---------- Offline banner ---------- */
 .offline-banner {
@@ -674,10 +793,25 @@ button.spec-row:hover {
 }
 
 .price-card__amount {
-  font-size: var(--fs-xxl);
-  font-weight: 800;
+  font-family: var(--font-figures);
+  font-size: var(--fs-figure);
+  font-weight: 700;
   color: var(--plate-yellow);
   font-variant-numeric: tabular-nums;
+}
+
+/* Two figures need to fit a phone row, so a range steps down a size. */
+.price-card__amount--range {
+  font-size: var(--fs-xxl);
+}
+
+.price-card__dash {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.price-card__range-note {
+  font-size: var(--fs-xs);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .price-card__importer {
@@ -713,7 +847,7 @@ button.spec-row:hover {
 
 .features__title {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -766,7 +900,7 @@ button.spec-row:hover {
 
 .recall__title {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -853,7 +987,7 @@ button.spec-row:hover {
 
 .ownership__hand {
   font-size: var(--fs-xxl);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text);
 }
 
@@ -888,7 +1022,8 @@ button.spec-row:hover {
   content: '';
   position: absolute;
   inset-block: 12px;
-  inset-inline-start: 5px;
+  /* Centred under the dots: the list's start padding plus half a dot. */
+  inset-inline-start: calc(var(--sp-md) + 5px);
   width: 2px;
   background: var(--border);
 }
@@ -930,53 +1065,4 @@ button.spec-row:hover {
   color: var(--text-secondary);
   line-height: 1.55;
   margin: var(--sp-md) 0 0;
-}
-
-/* ---------- Model photo (illustrative) ---------- */
-.vehicle-image {
-  margin: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-}
-
-.vehicle-image__img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  background: var(--surface-muted);
-}
-
-.vehicle-image__caption {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-xs);
-  padding: var(--sp-md) var(--sp-lg) var(--sp-lg);
-  border-top: 3px solid var(--plate-yellow);
-}
-
-.vehicle-image__warning {
-  font-size: var(--fs-sm);
-  font-weight: 800;
-  color: var(--text);
-}
-
-.vehicle-image__detail {
-  font-size: var(--fs-xs);
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.vehicle-image__credit {
-  font-size: var(--fs-xs);
-  color: var(--info);
-  text-decoration: none;
-  margin-top: var(--sp-xs);
-}
-
-.vehicle-image__credit:hover {
-  text-decoration: underline;
 }

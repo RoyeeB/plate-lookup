@@ -22,7 +22,10 @@ export type IconName =
   | 'share'
   | 'flash'
   | 'flash-off'
-  | 'calendar';
+  | 'calendar'
+  | 'fuel'
+  | 'gauge'
+  | 'key';
 
 const PATHS: Record<IconName, ReactElement> = {
   camera: (
@@ -113,6 +116,26 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
       <path d="M8 3v4M16 3v4M3.5 10.5h17" />
+    </>
+  ),
+  fuel: (
+    <>
+      <path d="M4.5 20.5V5a1.5 1.5 0 0 1 1.5-1.5h6A1.5 1.5 0 0 1 13.5 5v15.5" />
+      <path d="M3 20.5h12M4.5 10h9" />
+      <path d="M13.5 13h1.5a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 0 3 0V9l-3-3" />
+    </>
+  ),
+  gauge: (
+    <>
+      <path d="M4.2 17.5a9 9 0 1 1 15.6 0" />
+      <path d="m12 13.5 3.5-4" />
+      <circle cx="12" cy="13.5" r="1.2" />
+    </>
+  ),
+  key: (
+    <>
+      <circle cx="8" cy="15" r="4.5" />
+      <path d="m11.2 11.8 8.3-8.3M16.5 6.5l2.5 2.5M14 9l2 2" />
     </>
   ),
 };

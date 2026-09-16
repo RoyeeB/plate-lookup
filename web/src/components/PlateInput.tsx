@@ -3,7 +3,9 @@
  * rounded border and the blue EU strip. Digits are LTR & centered even in RTL.
  */
 import { useId, type ChangeEvent, type KeyboardEvent } from 'react';
+import { t } from '@/i18n';
 import { MAX_PLATE_DIGITS } from '@/lib/plate';
+import { Icon } from './Icon';
 
 interface PlateInputProps {
   value: string;
@@ -11,6 +13,12 @@ interface PlateInputProps {
   onSubmit?: () => void;
   placeholder?: string;
   autoFocus?: boolean;
+  /** Shows the "complete number" check. Visual only — nothing is announced. */
+  valid?: boolean;
+  /** Marks the field invalid for assistive tech; pair with `describedBy`. */
+  invalid?: boolean;
+  /** Id of the element explaining the current error, if any. */
+  describedBy?: string;
 }
 
 export function PlateInput({
@@ -19,6 +27,9 @@ export function PlateInput({
   onSubmit,
   placeholder,
   autoFocus,
+  valid = false,
+  invalid = false,
+  describedBy,
 }: PlateInputProps) {
   const id = useId();
 
@@ -32,7 +43,7 @@ export function PlateInput({
   };
 
   return (
-    <div className="plate-field">
+    <div className={`plate-field${valid ? ' plate-field--valid' : ''}`}>
       <span className="plate-field__strip" aria-hidden="true">
         IL
       </span>
@@ -48,9 +59,14 @@ export function PlateInput({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        aria-label="שדה הזנת מספר לוחית"
+        aria-label={t.home.plateInputLabel}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         autoFocus={autoFocus}
       />
+      <span className="plate-field__check" aria-hidden="true">
+        <Icon name="check" size={16} />
+      </span>
     </div>
   );
 }

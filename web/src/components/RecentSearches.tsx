@@ -11,7 +11,8 @@ import { PlateBadge } from './PlateBadge';
 
 interface RecentSearchesProps {
   items: RecentSearch[];
-  onSelect: (plate: string) => void;
+  /** `source` is the row's plate badge, for the morph into the result screen. */
+  onSelect: (plate: string, source: Element | null) => void;
   onClear: () => void;
 }
 
@@ -28,7 +29,13 @@ export function RecentSearches({ items, onSelect, onClear }: RecentSearchesProps
       </div>
 
       {items.length === 0 ? (
-        <p className="recent__empty">{t.home.recentEmpty}</p>
+        <div className="recent__empty">
+          <span className="recent__empty-icon" aria-hidden="true">
+            <Icon name="car" size={28} color="var(--text-secondary)" />
+          </span>
+          <p className="recent__empty-title">{t.home.recentEmptyTitle}</p>
+          <p className="recent__empty-body">{t.home.recentEmpty}</p>
+        </div>
       ) : (
         <ul className="recent__list">
           {items.map((entry) => {
@@ -38,11 +45,15 @@ export function RecentSearches({ items, onSelect, onClear }: RecentSearchesProps
                 <button
                   type="button"
                   className="recent__row"
-                  onClick={() => onSelect(entry.plate)}
+                  onClick={(e) =>
+                    onSelect(entry.plate, e.currentTarget.querySelector('.plate-badge'))
+                  }
                   aria-label={
                     description
-                      ? `חפש שוב ${description}, לוחית ${formatPlate(entry.plate)}`
-                      : `חפש שוב לוחית ${formatPlate(entry.plate)}`
+                      ? t.home.searchAgainCar
+                          .replace('{car}', description)
+                          .replace('{plate}', formatPlate(entry.plate))
+                      : t.home.searchAgainPlate.replace('{plate}', formatPlate(entry.plate))
                   }
                 >
                   <span className="recent__text">

@@ -8,6 +8,9 @@ import { t } from '@/i18n';
 import type { LicenseState, LicenseStatus } from '@/lib/licenseStatus';
 import { Icon, type IconName } from './Icon';
 
+/** A private car's test runs yearly, so the bar measures against one year. */
+const CYCLE_DAYS = 365;
+
 interface LicenseBannerProps {
   status: LicenseStatus | null;
 }
@@ -48,6 +51,15 @@ export function LicenseBanner({ status }: LicenseBannerProps) {
         <h2 className="license__title">{copy.title}</h2>
         <p className="license__body">{copy.body.replace('{date}', status.dateLabel)}</p>
         <span className="license__meta">{status.relative}</span>
+        {status.state !== 'expired' && (
+          // Decorative: the countdown text above already says the same thing.
+          <span className="license__cycle" aria-hidden="true">
+            <span
+              className="license__cycle-fill"
+              style={{ inlineSize: `${Math.max(2, Math.min(100, (status.days / CYCLE_DAYS) * 100))}%` }}
+            />
+          </span>
+        )}
       </div>
     </section>
   );

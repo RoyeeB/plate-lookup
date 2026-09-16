@@ -1,0 +1,324 @@
+/*
+ * Result-screen layout and the at-a-glance layer: hero, key facts, mileage
+ * insight, compact sticky bar, licence cycle bar, and the desktop two-column
+ * grid. Animation lives in motion.css; tokens in theme.css.
+ */
+
+/* ---------- Layout ---------- */
+.vehicle-layout__summary,
+.vehicle-layout__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .app-shell--wide {
+    max-width: var(--app-max-width-wide);
+  }
+
+  .vehicle-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sp-xl);
+    padding: var(--sp-xxl);
+  }
+
+  /* One row of compact buttons at the end instead of two stretched ones. */
+  .app-shell--wide .screen__actions--row {
+    justify-content: flex-end;
+    padding-inline: var(--sp-xxl);
+  }
+
+  .app-shell--wide .screen__actions--row .btn {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 220px;
+  }
+}
+
+/* ---------- Hero ---------- */
+.vehicle-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  /* `clip` crops like `hidden` but isn't a scroll container, so the photo's
+     scroll-driven parallax can see the page scroll. */
+  overflow: clip;
+}
+
+.vehicle-hero__media {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 16 / 9;
+  background: var(--surface-muted);
+  overflow: hidden;
+  overflow: clip;
+}
+
+/* Fade the photo into the card so the plate can sit across the seam. */
+.vehicle-hero__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, var(--hero-fade));
+  pointer-events: none;
+}
+
+.vehicle-hero__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* On the photo itself, where it can't be scrolled past or missed. Sits on an
+   arbitrary picture, so it carries its own dark backing in both themes. */
+.vehicle-hero__caption {
+  position: absolute;
+  top: var(--sp-md);
+  inset-inline-start: var(--sp-md);
+  z-index: 1;
+  max-width: calc(100% - var(--sp-xl));
+  padding: var(--sp-xs) var(--sp-md);
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.vehicle-hero__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-xl) var(--sp-lg);
+  text-align: center;
+}
+
+/* Pull the plate up across the photo's bottom edge. */
+.vehicle-hero--media .vehicle-hero__plate {
+  margin-top: -72px;
+}
+
+.vehicle-hero__plate .plate-badge {
+  box-shadow: var(--shadow-plate);
+}
+
+.vehicle-hero__name {
+  margin: var(--sp-xs) 0 0;
+  font-size: clamp(24px, 6.4vw, 32px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.vehicle-hero__meta {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.vehicle-hero__attribution {
+  margin: 0;
+  padding: var(--sp-md) var(--sp-lg);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.vehicle-hero__attribution a {
+  color: var(--info);
+  text-decoration: none;
+}
+
+.vehicle-hero__attribution a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Key facts ---------- */
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.facts__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-sm);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.fact__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.fact__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+  min-height: 24px;
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.fact__qualifier {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.facts__insight {
+  padding: var(--sp-md) var(--sp-lg);
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+}
+
+.facts__insight--low {
+  background: var(--insight-low-bg);
+  border-color: var(--insight-low-border);
+  --insight-accent: var(--success);
+}
+
+.facts__insight--average {
+  background: var(--insight-average-bg);
+  border-color: var(--insight-average-border);
+  --insight-accent: var(--info);
+}
+
+.facts__insight--high {
+  background: var(--insight-high-bg);
+  border-color: var(--insight-high-border);
+  --insight-accent: var(--warning);
+}
+
+.facts__insight-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-xs) var(--sp-md);
+  margin: 0;
+}
+
+.facts__insight-rate {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.facts__insight-band {
+  padding: 2px var(--sp-md);
+  border-radius: var(--r-pill);
+  background: var(--surface-muted);
+  color: var(--insight-accent);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.facts__insight-note {
+  margin: var(--sp-xs) 0 0;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ---------- Compact sticky bar ---------- */
+.compact-bar {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 9;
+  height: 0;
+}
+
+.compact-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-xl);
+  background: var(--background);
+  background: var(--chrome-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--border);
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease,
+    visibility 0s linear 0.25s;
+}
+
+.compact-bar__inner--visible {
+  transform: none;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease;
+}
+
+.compact-bar__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-md);
+  font-weight: 700;
+}
+
+/* ---------- Licence cycle bar ---------- */
+.license__cycle {
+  display: block;
+  width: min(240px, 100%);
+  height: 6px;
+  margin-top: var(--sp-sm);
+  border-radius: var(--r-pill);
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+
+.license__cycle-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+}

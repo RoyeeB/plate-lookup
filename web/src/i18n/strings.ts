@@ -14,9 +14,13 @@ export const he = {
     searchButton: 'חפש רכב',
     scanButton: 'סרוק לוחית',
     recentTitle: 'חיפושים אחרונים',
-    recentEmpty: 'עדיין אין חיפושים. חפשו לוחית כדי להתחיל.',
+    recentEmptyTitle: 'עדיין אין חיפושים',
+    recentEmpty: 'רכבים שתחפשו יופיעו כאן, כדי שתוכלו לחזור אליהם בלחיצה.',
     clearRecent: 'נקה היסטוריה',
     invalidPlate: 'מספר לוחית לא תקין — יש להזין 5 עד 8 ספרות',
+    plateInputLabel: 'מספר לוחית רישוי',
+    searchAgainCar: 'חפש שוב {car}, לוחית {plate}',
+    searchAgainPlate: 'חפש שוב לוחית {plate}',
   },
 
   // Scan
@@ -66,8 +70,28 @@ export const he = {
       'הערכים הבאים אינם מופיעים במרשם הרכב והם הערכה בלבד על סמך יצרן, דגם, שנה, נפח מנוע וסוג דלק.',
     source: 'מקור: מרשם הרכב, משרד התחבורה (data.gov.il)',
     copyVin: 'הועתק מספר השלדה',
-    copyHint: 'לחיצה ארוכה להעתקה',
+    copyHint: 'לחצו להעתקה',
     searchAgain: 'חיפוש חדש',
+    unnamed: 'רכב',
+    madeIn: 'תוצרת {country}',
+    imageLoading: 'טוען תמונת דגם…',
+  },
+
+  // At-a-glance facts under the hero
+  facts: {
+    title: 'במבט מהיר',
+    year: 'שנת ייצור',
+    hand: 'בעלויות',
+    mileage: 'קילומטראז\'',
+    fuel: 'דלק',
+    unknown: 'לא ידוע',
+    unavailable: '—',
+    loading: 'טוען…',
+    perYear: '~{km} ק"מ בשנה',
+    bandLow: 'נמוך מהממוצע',
+    bandAverage: 'ממוצע',
+    bandHigh: 'גבוה מהממוצע',
+    mileageNote: 'לפי הקילומטראז\' בטסט האחרון, ביחס לממוצע של כ-15,000 ק"מ בשנה לרכב פרטי',
   },
 
   // Licence validity ("טסט") — the one field a buyer or driver may need to act on.
@@ -98,11 +122,15 @@ export const he = {
   enrichment: {
     partialTitle: 'חלק מהנתונים המשלימים לא נטענו',
     partialBody: 'הפרטים הרשמיים שלמעלה מלאים. אפשר לנסות לטעון את השאר שוב.',
+    failedTitle: 'הנתונים המשלימים לא נטענו',
+    failedBody:
+      'הפרטים הרשמיים שלמעלה מלאים, אבל מחיר המחירון, הבעלויות, המפרט וההיסטוריה לא נטענו.',
   },
 
   // Labels for official registry fields (data.gov.il keys → Hebrew)
   fields: {
     tozeret_nm: 'יצרן',
+    tozeret_eretz_nm: 'ארץ ייצור',
     kinuy_mishari: 'דגם מסחרי',
     degem_nm: 'קוד דגם',
     ramat_gimur: 'רמת גימור',
@@ -153,6 +181,7 @@ export const he = {
   price: {
     title: 'מחיר מחירון',
     label: 'מחיר כשהדגם היה חדש',
+    rangeNote: 'הדגם מופיע במחירון בכמה גרסאות, במחירים שונים.',
     importer: 'יבואן',
     disclaimer:
       'זהו מחיר המחירון שפורסם לדגם בשנת הייצור — לא שווי הרכב היום. שווי נוכחי מושפע מקילומטראז\', מצב, בעלויות ותאונות, ומופיע רק במחירונים מסחריים.',
@@ -241,6 +270,7 @@ export const he = {
     offlineTitle: 'אין חיבור לאינטרנט',
     offlineBody: 'נדרש חיבור לאינטרנט כדי לאתר פרטי רכב.',
     retry: 'נסה שוב',
+    retrying: 'מנסה שוב…',
     back: 'חזרה',
     // Unhandled render error caught by the error boundary.
     crashTitle: 'משהו השתבש',
