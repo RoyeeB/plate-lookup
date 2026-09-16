@@ -15,6 +15,7 @@ import type {
   PriceRaw,
 } from './types';
 import type { MappedField } from './mapper';
+import { displayImporter } from '@/lib/manufacturer';
 
 function isEmpty(value: CkanValue | undefined): boolean {
   if (value === null || value === undefined) return true;
@@ -173,19 +174,48 @@ export function mapFeatures(spec: ModelSpecRaw | null): Feature[] {
  * ------------------------------------------------------------------ */
 
 export interface PriceInfo {
+  /** The (lowest) figure in shekels, for the count-up animation. */
+  value: number;
+  /** The same figure, formatted as currency. */
   amount: string;
+  /** Highest figure when the model's trims were listed at different prices. */
+  maxValue: number | null;
+  maxAmount: string | null;
+  /** Only when every matching row names the same importer. */
   importer: string | null;
   year: string | null;
 }
 
-export function mapPrice(price: PriceRaw | null): PriceInfo | null {
-  if (!price) return null;
-  const amount = num(price.mehir);
-  if (amount === null) return null;
+/**
+ * Summarise the price-list rows for one model. Several rows with different
+ * prices are shown as a range — picking one of them would present an arbitrary
+ * trim's price as this car's. Likewise the importer is shown only when the rows
+ * agree on it.
+ */
+export function mapPrice(rows: PriceRaw[]): PriceInfo | null {
+  const priced = rows
+    .map((row) => ({ row, amount: num(row.mehir) }))
+    .filter((entry): entry is { row: PriceRaw; amount: number } => entry.amount !== null);
+  if (priced.length === 0) return null;
+
+  const amounts = priced.map((entry) => entry.amount);
+  const min = Math.min(...amounts);
+  const max = Math.max(...amounts);
+
+  const importers = new Set(
+    priced
+      .map((entry) => text(entry.row.shem_yevuan))
+      .filter((name): name is string => name !== null)
+      .map((name) => displayImporter(name))
+  );
+
   return {
-    amount: formatCurrency(amount),
-    importer: text(price.shem_yevuan),
-    year: text(price.shnat_yitzur),
+    value: min,
+    amount: formatCurrency(min),
+    maxValue: max > min ? max : null,
+    maxAmount: max > min ? formatCurrency(max) : null,
+    importer: importers.size === 1 ? [...importers][0] : null,
+    year: text(priced[0].row.shnat_yitzur),
   };
 }
 

@@ -86,34 +86,81 @@ function toInt(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** How a registry record identifies its model beyond the numeric codes. */
+interface ModelIdentity {
+  degemNm: string;
+  ramatGimur: string;
+}
+
+function norm(value: unknown): string {
+  return String(value ?? '').replace(/\s+/g, ' ').trim().toUpperCase();
+}
+
+/**
+ * Keep only the rows that are this car's model. The numeric model code is not
+ * unique on its own: the same (manufacturer, model code, year) can cover a
+ * Trafic van and a Megane hatchback. `degem_nm` separates those; the trim level
+ * then narrows further where the dataset has one. A filter that would leave no
+ * rows is skipped rather than applied, since not every row carries every field.
+ */
+function narrowToModel<T extends { degem_nm?: unknown; ramat_gimur?: unknown }>(
+  rows: T[],
+  identity: ModelIdentity
+): T[] {
+  let matched = rows;
+  if (identity.degemNm) {
+    const byName = matched.filter((row) => norm(row.degem_nm) === identity.degemNm);
+    if (byName.length > 0) matched = byName;
+    // Rows exist but none is this model: better nothing than another model's data.
+    else if (matched.some((row) => norm(row.degem_nm) !== '')) return [];
+  }
+  if (identity.ramatGimur) {
+    const byTrim = matched.filter((row) => norm(row.ramat_gimur) === identity.ramatGimur);
+    if (byTrim.length > 0) matched = byTrim;
+  }
+  return matched;
+}
+
+/** Enough to hold every trim of one model code across all its years. */
+const MODEL_ROWS = 200;
+
 /**
  * Look up one model-keyed resource. Tries the exact production year first and
- * falls back to the same model in any year — model codes are stable across a
- * generation, and a car's registry year and the catalogue year sometimes differ
- * by one.
+ * falls back to the same model in the nearest year — model codes are stable
+ * across a generation, and a car's registry year and the catalogue year
+ * sometimes differ by one.
  */
-async function queryByModel<T>(
+async function queryByModel<T extends { degem_nm?: unknown; ramat_gimur?: unknown; shnat_yitzur?: unknown }>(
   resourceId: string,
   tozeretCd: number,
   degemCd: number,
   year: number | null,
+  identity: ModelIdentity,
   signal: AbortSignal
-): Promise<T | null> {
+): Promise<T[]> {
   if (year !== null) {
-    const exact = await queryRows<T>(
-      resourceId,
-      { tozeret_cd: tozeretCd, degem_cd: degemCd, shnat_yitzur: year },
-      signal
+    const exact = narrowToModel(
+      await queryRows<T>(
+        resourceId,
+        { tozeret_cd: tozeretCd, degem_cd: degemCd, shnat_yitzur: year },
+        signal,
+        MODEL_ROWS
+      ),
+      identity
     );
-    if (exact.length > 0) return exact[0];
+    if (exact.length > 0) return exact;
   }
 
-  const anyYear = await queryRows<T>(
-    resourceId,
-    { tozeret_cd: tozeretCd, degem_cd: degemCd },
-    signal
+  const anyYear = narrowToModel(
+    await queryRows<T>(resourceId, { tozeret_cd: tozeretCd, degem_cd: degemCd }, signal, MODEL_ROWS),
+    identity
   );
-  return anyYear[0] ?? null;
+  if (anyYear.length === 0 || year === null) return anyYear;
+
+  // Mixing years would mix prices from different eras; keep the closest one.
+  const distance = (row: T) => Math.abs((toInt(row.shnat_yitzur) ?? Infinity) - year);
+  const nearest = Math.min(...anyYear.map(distance));
+  return anyYear.filter((row) => distance(row) === nearest);
 }
 
 async function queryHistory(
@@ -133,7 +180,7 @@ const MAX_OWNERSHIP_ROWS = 60;
 
 const EMPTY: VehicleEnrichment = {
   modelSpec: null,
-  price: null,
+  price: [],
   history: null,
   recalls: [],
   ownership: [],
@@ -156,6 +203,10 @@ export async function fetchEnrichment(
   const plateNumber = toInt(plate);
 
   const hasModelKey = tozeretCd !== null && degemCd !== null;
+  const identity: ModelIdentity = {
+    degemNm: norm(record.degem_nm),
+    ramatGimur: norm(record.ramat_gimur),
+  };
   const failed: string[] = [];
 
   const [modelSpec, price, history, recalls, ownership] = await Promise.all([
@@ -166,8 +217,9 @@ export async function fetchEnrichment(
             tozeretCd,
             degemCd,
             year,
+            identity,
             signal
-          ),
+          ).then((rows) => rows[0] ?? null),
           null,
           signal,
           failed,
@@ -181,14 +233,15 @@ export async function fetchEnrichment(
             tozeretCd,
             degemCd,
             year,
+            identity,
             signal
           ),
-          null,
+          [],
           signal,
           failed,
           'priceList'
         )
-      : Promise.resolve(null),
+      : Promise.resolve([]),
     plateNumber !== null
       ? soft(queryHistory(plateNumber, signal), null, signal, failed, 'history')
       : Promise.resolve(null),

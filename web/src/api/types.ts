@@ -17,7 +17,12 @@ export type CkanValue = string | number | boolean | null;
 export interface VehicleRecordRaw {
   _id?: number;
   mispar_rechev?: CkanValue;
+  /** Manufacturer code — the key into the Ministry's brand/country catalogue. */
+  tozeret_cd?: CkanValue;
+  /** Brand + country of manufacture in one truncated field, e.g. "פולקסווגן גרמנ". */
   tozeret_nm?: CkanValue;
+  /** Country of manufacture, as a column of its own (motorcycle dataset only). */
+  tozeret_eretz_nm?: CkanValue;
   kinuy_mishari?: CkanValue;
   degem_nm?: CkanValue;
   ramat_gimur?: CkanValue;
@@ -88,6 +93,8 @@ export interface EstimatedSpec {
  *  ones we surface. Note the spelling `nefah_manoa` — the main registry uses
  *  `nefach_manoa`, this dataset drops the `c`. */
 export interface ModelSpecRaw {
+  /** Model designation — tells apart models that share a numeric model code. */
+  degem_nm?: CkanValue;
   kinuy_mishari?: CkanValue;
   ramat_gimur?: CkanValue;
   /** Engine displacement, cc. */
@@ -124,6 +131,8 @@ export interface PriceRaw {
   mehir?: CkanValue;
   shem_yevuan?: CkanValue;
   shnat_yitzur?: CkanValue;
+  degem_nm?: CkanValue;
+  kinuy_mishari?: CkanValue;
 }
 
 /** A row from the vehicle-history dataset (`56063a99…` / `bb2355dc…`). */
@@ -160,7 +169,11 @@ export interface RecallRaw {
  *  coverage varies a lot by vehicle age and class. */
 export interface VehicleEnrichment {
   modelSpec: ModelSpecRaw | null;
-  price: PriceRaw | null;
+  /**
+   * Every price-list row that matches this exact model. Usually one; several
+   * when the list carries trims of the same model code at different prices.
+   */
+  price: PriceRaw[];
   history: HistoryRaw | null;
   recalls: RecallRaw[];
   /** Chronological ownership transfers; empty when the car predates the log. */

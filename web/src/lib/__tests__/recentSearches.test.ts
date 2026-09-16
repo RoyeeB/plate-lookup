@@ -145,3 +145,12 @@ describe('describeRecentSearch', () => {
     expect(describeRecentSearch({ plate: '1234567', at: 0 })).toBeNull();
   });
 });
+
+describe('describeRecentSearch — brand display', () => {
+  it('cleans a raw registry name saved by an older version', async () => {
+    const { describeRecentSearch } = await import('@/lib/recentSearches');
+    expect(
+      describeRecentSearch({ plate: '1234567', make: 'יונדאי טורקיה', model: 'I10', year: '2016', at: 0 })
+    ).toBe('יונדאי I10 · 2016');
+  });
+});

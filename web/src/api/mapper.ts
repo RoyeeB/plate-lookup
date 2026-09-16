@@ -4,10 +4,12 @@
  */
 import { t } from '@/i18n';
 import type { DisplayField, VehicleRecordRaw, CkanValue } from './types';
+import { resolveManufacturer } from '@/lib/manufacturer';
 
 /** The official fields to show, in display order, with their Hebrew labels. */
 const FIELD_ORDER: ReadonlyArray<{ key: keyof typeof t.fields; copyable?: boolean }> = [
   { key: 'tozeret_nm' },
+  { key: 'tozeret_eretz_nm' },
   { key: 'kinuy_mishari' },
   { key: 'degem_nm' },
   { key: 'ramat_gimur' },
@@ -49,8 +51,16 @@ export interface MappedField extends DisplayField {
 export function mapOfficialFields(record: VehicleRecordRaw): MappedField[] {
   const fields: MappedField[] = [];
 
+  // The registry packs brand and country into one truncated `tozeret_nm`
+  // ("פולקסווגן גרמנ"); show them as the two fields they really are.
+  const manufacturer = resolveManufacturer(record);
+  const resolved: Partial<Record<keyof typeof t.fields, string | null>> = {
+    tozeret_nm: manufacturer?.brand ?? null,
+    tozeret_eretz_nm: manufacturer?.country ?? null,
+  };
+
   for (const { key, copyable } of FIELD_ORDER) {
-    const raw = record[key];
+    const raw = key in resolved ? resolved[key] : record[key];
     if (isEmpty(raw)) continue; // hide empty rather than render a blank row
 
     const value = DATE_KEYS.has(key) ? formatDate(raw as CkanValue) : String(raw).trim();

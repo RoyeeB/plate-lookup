@@ -7,7 +7,7 @@
  * and the ordinal-label fallback once the Hebrew ordinal list runs out.
  */
 import { describe, expect, it } from 'vitest';
-import { firstRoadYear, summarizeOwnership } from '@/api/specMapper';
+import { firstRoadYear, mapPrice, summarizeOwnership } from '@/api/specMapper';
 import type { HistoryRaw, OwnershipRaw } from '@/api/types';
 
 function transfer(baalut_dt: string, baalut: string): OwnershipRaw {
@@ -102,5 +102,47 @@ describe('firstRoadYear', () => {
 
   it('returns null when nothing is usable', () => {
     expect(firstRoadYear({}, null)).toBeNull();
+  });
+});
+
+describe('mapPrice', () => {
+  it('shows one price and its importer, cleaned of the legal suffix', () => {
+    const price = mapPrice([{ mehir: 59_900, shem_yevuan: 'כלמוביל יונדאי', shnat_yitzur: 2016 }]);
+    expect(price?.value).toBe(59_900);
+    expect(price?.maxValue).toBeNull();
+    expect(price?.importer).toBe('כלמוביל יונדאי');
+    expect(price?.year).toBe('2016');
+  });
+
+  it('gives a range, not an arbitrary trim, when rows disagree on price', () => {
+    const price = mapPrice([
+      { mehir: 286_900, shem_yevuan: 'טל - קאר', shnat_yitzur: 2019 },
+      { mehir: 242_900, shem_yevuan: 'טל - קאר', shnat_yitzur: 2019 },
+    ]);
+    expect(price?.value).toBe(242_900);
+    expect(price?.maxValue).toBe(286_900);
+    expect(price?.importer).toBe('טל - קאר');
+  });
+
+  it('omits the importer when the rows name different ones', () => {
+    const price = mapPrice([
+      { mehir: 666_000, shem_yevuan: 'חברת המזרח' },
+      { mehir: 700_000, shem_yevuan: 'בר סרבינסקי' },
+    ]);
+    expect(price?.importer).toBeNull();
+  });
+
+  it('treats spelling variants of one importer as the same importer', () => {
+    const price = mapPrice([
+      { mehir: 100_000, shem_yevuan: 'יוניון מוטורס בע"מ' },
+      { mehir: 100_000, shem_yevuan: 'יוניון מוטורס' },
+    ]);
+    expect(price?.importer).toBe('יוניון מוטורס');
+    expect(price?.maxValue).toBeNull();
+  });
+
+  it('is null when no row has a price', () => {
+    expect(mapPrice([])).toBeNull();
+    expect(mapPrice([{ mehir: 0, shem_yevuan: 'x' }])).toBeNull();
   });
 });

@@ -15,6 +15,7 @@ import {
 import type { VehicleEnrichment, VehicleLookupResult } from './types';
 import { fetchEnrichment } from './enrich';
 import { fetchVehicleImage, type VehicleImage } from '@/lib/vehicleImage';
+import { resolveManufacturer } from '@/lib/manufacturer';
 import { normalizePlate, isValidPlate } from '@/lib/plate';
 import {
   addRecentSearch,
@@ -72,7 +73,7 @@ export function useVehicleEnrichment(
 export function useVehicleImage(
   result: VehicleLookupResult | undefined
 ): UseQueryResult<VehicleImage | null, Error> {
-  const make = String(result?.record.tozeret_nm ?? '').trim();
+  const make = result ? (resolveManufacturer(result.record)?.brand ?? '') : '';
   const model = String(result?.record.kinuy_mishari ?? '').trim();
 
   return useQuery<VehicleImage | null, Error>({

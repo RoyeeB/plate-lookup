@@ -10,6 +10,7 @@
  * mode throws on `setItem`, and a blocked-cookies profile throws on read too.
  */
 import { normalizePlate } from './plate';
+import { displayBrand } from './manufacturer';
 
 const STORAGE_KEY = 'plate-lookup:recent-searches:v2';
 const LEGACY_KEY = 'plate-lookup:recent-searches:v1';
@@ -123,7 +124,9 @@ export function clearRecentSearches(): void {
 
 /** "טויוטה קורולה · 2019" — the line under the plate badge. */
 export function describeRecentSearch(entry: RecentSearch): string | null {
-  const name = [entry.make, entry.model].filter(Boolean).join(' ').trim();
+  // Entries saved before brands were cleaned hold the raw "יונדאי טורקיה".
+  const make = entry.make ? displayBrand(entry.make) : undefined;
+  const name = [make, entry.model].filter(Boolean).join(' ').trim();
   if (!name) return entry.year ?? null;
   return entry.year ? `${name} · ${entry.year}` : name;
 }
