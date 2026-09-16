@@ -56,6 +56,10 @@ Two apps share this repo:
 - Named exports for components, default exports for pages; a short JSDoc header explaining the component's purpose.
 - Data shown to users must be true: never pick an arbitrary row when a dataset is ambiguous — narrow by `degem_nm`/trim, show a range, or show nothing.
 
+### Git
+
+- Do not add `Co-Authored-By` (or any AI attribution) lines to commit messages or PR descriptions.
+
 ### Checks before finishing
 
 From `web/`: `npm run lint` (tsc + ESLint), `npm test` (Vitest), `npm run test:e2e` (Playwright), `npm run build`.
