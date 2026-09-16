@@ -1,0 +1,44 @@
+# Monthly refresh of shared/manufacturers.json from the Ministry of Transport
+# catalogue on data.gov.il. New manufacturer codes otherwise fall back to
+# parsing the truncated registry name. Opens a PR only when the data changed.
+name: Refresh manufacturer catalogue
+
+on:
+  schedule:
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Rebuild catalogue
+        run: node scripts/build-manufacturers.mjs
+
+      - name: Verify the web app still passes
+        working-directory: web
+        run: |
+          npm ci
+          npm run lint
+          npm test
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/refresh-manufacturers
+          commit-message: 'Refresh manufacturer catalogue from data.gov.il'
+          title: 'Refresh manufacturer catalogue'
+          body: |
+            Automated monthly rebuild of `shared/manufacturers.json` from the
+            Ministry of Transport WLTP catalogue. Lint and unit tests passed.
+          add-paths: shared/manufacturers.json
