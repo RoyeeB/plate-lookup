@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { UPDATE_EVENT } from './components/UpdateBanner';
 // Self-hosted fonts: no third-party request, and they keep working offline in
 // the installed PWA. Only the Hebrew and Latin subsets, only the weights used.
 import '@fontsource/ibm-plex-sans-hebrew/hebrew-400.css';
@@ -34,9 +35,25 @@ createRoot(container).render(
 // in the way of hot reload. Registration failures are non-fatal: the app
 // still works fully online without it.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  // The worker activates immediately (skipWaiting + clients.claim), so a
+  // controller change on a page that already had one means new code landed.
+  const hadController = navigator.serviceWorker.controller !== null;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) window.dispatchEvent(new Event(UPDATE_EVENT));
+  });
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // Silent: offline support is a nice-to-have, not a hard requirement.
-    });
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        // An installed PWA can stay open for days; look for updates when it
+        // comes back to the foreground rather than only on a cold start.
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') void registration.update();
+        });
+      })
+      .catch(() => {
+        // Silent: offline support is a nice-to-have, not a hard requirement.
+      });
   });
 }

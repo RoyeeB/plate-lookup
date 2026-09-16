@@ -6,6 +6,13 @@
 export const he = {
   appName: 'איתור לוחית',
 
+  // New app version (service worker update)
+  update: {
+    available: 'גרסה חדשה של האתר זמינה',
+    reload: 'רענון',
+    dismiss: 'סגירת ההודעה',
+  },
+
   // Colour theme toggle
   theme: {
     label: 'ערכת צבעים: {current}. לחצו להחלפה',

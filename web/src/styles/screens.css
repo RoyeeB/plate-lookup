@@ -149,3 +149,40 @@
 .screen__actions--row .btn--primary {
   flex: 1;
 }
+
+/* ---------- New version available ---------- */
+.update-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-lg);
+  background: var(--surface-estimate);
+  border-bottom: 1px solid var(--estimates-border);
+  color: var(--info);
+  font-size: var(--fs-sm);
+}
+
+.update-banner__text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.update-banner__action {
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--info);
+  color: var(--background);
+  padding: var(--sp-xs) var(--sp-md);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.update-banner__dismiss {
+  display: inline-flex;
+  border: none;
+  background: none;
+  padding: var(--sp-xs);
+  color: var(--text-secondary);
+}

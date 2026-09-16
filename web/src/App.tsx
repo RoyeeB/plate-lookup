@@ -7,6 +7,7 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Icon } from '@/components/Icon';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import HomePage from '@/pages/HomePage';
 import VehiclePage from '@/pages/VehiclePage';
 // Order matters: base rules first, then the stylesheets that refine them.
@@ -47,6 +48,7 @@ function Chrome() {
   return (
     <div className={`app-shell${wide ? ' app-shell--wide' : ''}`}>
       {offline && <div className="offline-banner">{t.states.offlineTitle}</div>}
+      <UpdateBanner />
       <header className="app-header">
         {showBack && (
           <button
