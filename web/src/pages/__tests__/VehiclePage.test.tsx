@@ -12,6 +12,7 @@ import { VehicleNotFoundError } from '@/api/client';
 import type { VehicleLookupResult } from '@/api/types';
 import { renderWithProviders } from '@/test/render';
 import { t } from '@/i18n';
+import { saveVehicle } from '@/lib/savedVehicles';
 
 const hooks = vi.hoisted(() => ({
   useVehicle: vi.fn(),
@@ -29,7 +30,8 @@ vi.mock('@/api/queries', async (importOriginal) => {
   };
 });
 
-vi.mock('@/hooks/useNetworkStatus', () => ({ useNetworkStatus: () => ({ offline: false }) }));
+const network = vi.hoisted(() => ({ offline: false }));
+vi.mock('@/hooks/useNetworkStatus', () => ({ useNetworkStatus: () => ({ offline: network.offline }) }));
 
 const PLATE = '1234567';
 
@@ -70,6 +72,8 @@ const renderPage = () =>
 
 describe('VehiclePage', () => {
   beforeEach(() => {
+    network.offline = false;
+    localStorage.clear();
     hooks.useVehicle.mockReturnValue(vehicle());
     hooks.useVehicleEnrichment.mockReturnValue(enrichment());
   });
@@ -179,6 +183,48 @@ describe('VehiclePage', () => {
     expect(screen.getByText(t.enrichment.partialTitle)).toBeTruthy();
     expect(screen.queryByText(t.ownership.unknownTitle)).toBeNull();
     expect(screen.queryByText(t.facts.unknown)).toBeNull();
+  });
+
+  it('shows the saved copy offline, labelled with when it was saved', () => {
+    saveVehicle(result, null, new Date(2026, 5, 1, 9, 30).getTime());
+    network.offline = true;
+    renderPage();
+
+    expect(screen.getByText(/מידע שמור מ-01\.06\.2026/)).toBeTruthy();
+    expect(screen.getByText(t.saved.bodyOffline)).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 2, name: 'טויוטה קורולה' })).toBeTruthy();
+  });
+
+  it('falls back to the saved copy when the server fails, with a retry', () => {
+    saveVehicle(result, null);
+    hooks.useVehicle.mockReturnValue(vehicle({ isError: true, error: new Error('boom') }));
+    renderPage();
+
+    expect(screen.getByText(t.saved.bodyError)).toBeTruthy();
+    expect(screen.queryByText(t.states.errorTitle)).toBeNull();
+    expect(screen.getByRole('button', { name: t.states.retry })).toBeTruthy();
+  });
+
+  it('never uses a saved copy to contradict a definite "not found"', () => {
+    saveVehicle(result, null);
+    hooks.useVehicle.mockReturnValue(
+      vehicle({ isError: true, error: new VehicleNotFoundError(PLATE) })
+    );
+    renderPage();
+    expect(screen.getByText(t.states.notFoundTitle)).toBeTruthy();
+    expect(screen.queryByText(t.saved.bodyError)).toBeNull();
+  });
+
+  it('shows the offline state when nothing was saved', () => {
+    network.offline = true;
+    renderPage();
+    expect(screen.getByText(t.states.offlineTitle)).toBeTruthy();
+  });
+
+  it('saves a successful lookup for offline use', () => {
+    hooks.useVehicle.mockReturnValue(vehicle({ data: result }));
+    renderPage();
+    expect(localStorage.getItem('plate-lookup:saved-vehicles:v1')).toContain(PLATE);
   });
 
   it('disables the enrichment retry while it is in flight', () => {

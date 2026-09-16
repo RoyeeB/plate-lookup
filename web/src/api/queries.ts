@@ -16,6 +16,7 @@ import type { VehicleEnrichment, VehicleLookupResult } from './types';
 import { fetchEnrichment } from './enrich';
 import { fetchVehicleImage, type VehicleImage } from '@/lib/vehicleImage';
 import { resolveManufacturer } from '@shared/manufacturer';
+import { clearSavedVehicles } from '@/lib/savedVehicles';
 import { normalizePlate, isValidPlate } from '@/lib/plate';
 import {
   addRecentSearch,
@@ -114,6 +115,8 @@ export function useRecentSearches() {
 
   const clear = useCallback(() => {
     clearRecentSearches();
+    // Clearing history must not leave the cars themselves stored offline.
+    clearSavedVehicles();
     setRecent([]);
     // Drop cached lookups too so nothing lingers.
     queryClient.removeQueries({ queryKey: ['vehicle'] });

@@ -6,6 +6,13 @@
 export const he = {
   appName: 'איתור לוחית',
 
+  // Vehicle shown from the offline copy
+  saved: {
+    title: 'מידע שמור מ-{date}',
+    bodyOffline: 'אין חיבור לאינטרנט, לכן מוצג המידע מהחיפוש הקודם. ייתכן שהשתנה מאז — למשל תוקף הרישיון או הבעלות.',
+    bodyError: 'לא הצלחנו לטעון נתונים עדכניים, לכן מוצג המידע מהחיפוש הקודם. ייתכן שהשתנה מאז.',
+  },
+
   // New app version (service worker update)
   update: {
     available: 'גרסה חדשה של האתר זמינה',

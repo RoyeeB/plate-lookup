@@ -23,6 +23,7 @@ import { estimateSpecs } from '@/lib/estimates';
 import { licenseStatus } from '@/lib/licenseStatus';
 import { mileageInsight, positiveNumber, vehicleName } from '@/lib/vehicleSummary';
 import { resolveManufacturer } from '@shared/manufacturer';
+import { loadSavedVehicle, saveVehicle } from '@/lib/savedVehicles';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useInView } from '@/hooks/useInView';
 import { PlateBadge } from '@/components/PlateBadge';
@@ -42,6 +43,7 @@ import { EnrichmentNote } from '@/components/EnrichmentNote';
 import { VehicleHero } from '@/components/VehicleHero';
 import { KeyFacts } from '@/components/KeyFacts';
 import { CompactVehicleBar } from '@/components/CompactVehicleBar';
+import { SavedNotice } from '@/components/SavedNotice';
 
 function clean(value: unknown): string | undefined {
   const s = String(value ?? '').trim();
@@ -55,14 +57,28 @@ export default function VehiclePage() {
   const navigate = useNavigate();
   const [plateRef, plateInView] = useInView<HTMLDivElement>();
 
-  const { data, isLoading, isError, error, refetch, isFetching } = useVehicle(plate);
+  const { data: live, isLoading, isError, error, refetch, isFetching } = useVehicle(plate);
   const {
-    data: extra,
+    data: liveExtra,
     isLoading: extraLoading,
     isError: extraError,
     isFetching: extraFetching,
     refetch: refetchExtra,
-  } = useVehicleEnrichment(data);
+  } = useVehicleEnrichment(live);
+
+  // With no connection (or a failing server), fall back to the copy saved the
+  // last time this car was looked up — clearly labelled as such below.
+  const saved = useMemo(() => loadSavedVehicle(plate), [plate]);
+  const transportFailed = isError && !isNotFound(error);
+  const showingSaved = !live && saved !== null && (offline || transportFailed);
+  const data = live ?? (showingSaved ? saved.result : undefined);
+  const extra = liveExtra ?? (showingSaved ? (saved.enrichment ?? undefined) : undefined);
+
+  useEffect(() => {
+    // Save once the enrichment has settled, so the offline copy is complete.
+    if (!live || extraLoading) return;
+    saveVehicle(live, liveExtra ?? null);
+  }, [live, liveExtra, extraLoading]);
   const { data: image, isLoading: imageLoading } = useVehicleImage(data);
   const { add } = useRecentSearches();
 
@@ -173,8 +189,8 @@ export default function VehiclePage() {
     );
   }
 
-  // Not found vs. transport error.
-  if (isError) {
+  // Not found vs. transport error (unless a saved copy is standing in).
+  if (isError && !showingSaved) {
     if (isNotFound(error)) {
       return (
         <div className="screen">
@@ -220,6 +236,15 @@ export default function VehiclePage() {
 
       <div className="screen__scroll vehicle-layout">
         <div className="vehicle-layout__summary reveal-stack">
+          {showingSaved && saved && (
+            <SavedNotice
+              savedAt={saved.savedAt}
+              offline={offline}
+              onRetry={() => void refetch()}
+              retrying={isFetching}
+            />
+          )}
+
           <VehicleHero
             plate={plate}
             name={name}
