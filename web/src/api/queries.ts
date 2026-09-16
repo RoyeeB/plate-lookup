@@ -76,12 +76,15 @@ export function useVehicleImage(
 ): UseQueryResult<VehicleImage | null, Error> {
   const make = result ? (resolveManufacturer(result.record)?.brand ?? '') : '';
   const model = String(result?.record.kinuy_mishari ?? '').trim();
+  const yearNumber = Number(result?.record.shnat_yitzur);
+  const year = Number.isInteger(yearNumber) && yearNumber > 1900 ? yearNumber : null;
 
   return useQuery<VehicleImage | null, Error>({
-    queryKey: ['vehicle-image', make, model],
+    // Keyed by model and year: each generation has its own photo.
+    queryKey: ['vehicle-image', make, model, year],
     enabled: make !== '' && model !== '',
-    queryFn: ({ signal }) => fetchVehicleImage(make, model, signal),
-    // Keyed by model, not plate, so every car of the same model shares one
+    queryFn: ({ signal }) => fetchVehicleImage(make, model, signal, year),
+    // Not keyed by plate, so every car of the same model and year shares one
     // lookup. Wikipedia returns 429 under load, so never retry.
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24,

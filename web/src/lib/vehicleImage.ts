@@ -234,6 +234,147 @@ export function titleMatchesModel(title: string, make: string, model: string): b
   return matched === modelWords.length && articleWords[matched] === 'and';
 }
 
+/* ------------------------------------------------------------------ *
+ * Generation-accurate photos
+ * ------------------------------------------------------------------ */
+
+const WIKI_YEAR = /\b(19[5-9]\d|20\d\d)\b/g;
+
+/**
+ * Production years from an infobox's `production` field (or `model_years`
+ * when that's all there is). Citations are removed first — a reference's
+ * publication date is not a production year.
+ */
+export function parseProductionYears(
+  wikitext: string,
+  now: Date = new Date()
+): { from: number; to: number } | null {
+  const text = wikitext
+    .replace(/<ref[^>]*\/>/g, '')
+    .replace(/<ref[^>]*>[\s\S]*?<\/ref>/g, '')
+    .replace(/<!--[\s\S]*?-->/g, '');
+
+  for (const field of ['production', 'model_years']) {
+    const start = text.search(new RegExp(`^\\s*\\|\\s*${field}\\s*=`, 'm'));
+    if (start === -1) continue;
+    // The value runs until the next top-level "| name =" parameter.
+    const rest = text.slice(start).replace(/^[^=]*=/, '');
+    const end = rest.search(/\n\s*\|\s*[a-z_ ]+=/i);
+    const value = end === -1 ? rest : rest.slice(0, end);
+
+    const years = [...value.matchAll(WIKI_YEAR)].map((m) => Number(m[1]));
+    if (years.length === 0) continue;
+    const to = /present/i.test(value) ? now.getFullYear() : Math.max(...years);
+    return { from: Math.min(...years), to };
+  }
+  return null;
+}
+
+/** "Toyota Corolla (E210)", "Volkswagen Golf Mk6" → the generation marker's base title. */
+function generationBase(title: string): string | null {
+  const paren = title.match(/^(.*\S)\s*\([^)]+\)$/);
+  if (paren) return paren[1];
+  const mark = title.match(/^(.*\S)\s+Mk\s?\d+$/i);
+  return mark ? mark[1] : null;
+}
+
+/** A generation article of exactly this model (not a sibling model's). */
+export function isGenerationTitle(title: string, make: string, model: string): boolean {
+  const base = generationBase(title);
+  return base !== null && titleMatchesModel(base, make, model);
+}
+
+export interface GenerationCandidate {
+  title: string;
+  from: number;
+  to: number;
+}
+
+/**
+ * The generation for a car built in `year`: of those in production that year,
+ * the one that started most recently. Ranges alone can't decide it — an old
+ * generation often lingers for years in one market ("2014 – present
+ * (Pakistan)") alongside its successor. No covering generation means no guess.
+ */
+export function pickGeneration<T extends GenerationCandidate>(
+  candidates: T[],
+  year: number
+): T | null {
+  const covering = candidates.filter((c) => c.from <= year && year <= c.to);
+  if (covering.length === 0) return null;
+  return covering.reduce((best, c) => (c.from > best.from ? c : best));
+}
+
+/** Enough for every generation of a long-running model (Corolla has 12). */
+const MAX_GENERATIONS = 20;
+
+async function generationImage(
+  make: string,
+  model: string,
+  year: number,
+  signal: AbortSignal
+): Promise<VehicleImage | null> {
+  const search = new URLSearchParams({
+    action: 'query',
+    format: 'json',
+    origin: '*',
+    generator: 'search',
+    gsrsearch: `intitle:"${make} ${model.split(' ')[0]}"`,
+    gsrlimit: '20',
+    prop: 'pageimages',
+    piprop: 'thumbnail|name',
+    pithumbsize: '640',
+  });
+  const response = await fetch(`https://en.wikipedia.org/w/api.php?${search}`, { signal });
+  if (!response.ok) return null;
+  const json = (await response.json()) as { query?: { pages?: Record<string, WikiPage> } };
+
+  const pages = Object.values(json.query?.pages ?? {})
+    .filter(
+      (page) =>
+        page.title &&
+        page.thumbnail?.source &&
+        !NOT_A_CAR.test(page.pageimage ?? '') &&
+        isGenerationTitle(page.title, make, model)
+    )
+    .slice(0, MAX_GENERATIONS);
+  if (pages.length === 0) return null;
+
+  // One request for all candidates' wikitext (the API allows 50 titles).
+  const content = new URLSearchParams({
+    action: 'query',
+    format: 'json',
+    formatversion: '2',
+    origin: '*',
+    prop: 'revisions',
+    rvprop: 'content',
+    rvslots: 'main',
+    titles: pages.map((page) => page.title).join('|'),
+  });
+  const contentResponse = await fetch(`https://en.wikipedia.org/w/api.php?${content}`, { signal });
+  if (!contentResponse.ok) return null;
+  const contentJson = (await contentResponse.json()) as {
+    query?: {
+      pages?: Array<{ title: string; revisions?: Array<{ slots?: { main?: { content?: string } } }> }>;
+    };
+  };
+
+  const withYears = (contentJson.query?.pages ?? []).flatMap((entry) => {
+    const page = pages.find((p) => p.title === entry.title);
+    const years = parseProductionYears(entry.revisions?.[0]?.slots?.main?.content ?? '');
+    return page && years ? [{ page, title: entry.title, ...years }] : [];
+  });
+
+  const chosen = pickGeneration(withYears, year);
+  if (!chosen?.page.thumbnail?.source) return null;
+  return {
+    url: chosen.page.thumbnail.source,
+    articleTitle: chosen.title,
+    articleUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(chosen.title)}`,
+    lang: 'en',
+  };
+}
+
 interface WikiPage {
   title?: string;
   index?: number;
@@ -302,6 +443,7 @@ async function wikiQuery(
  * Resolve a model photo. Tries the most precise strategy first and stops at the
  * first result that actually looks like a car:
  *
+ *  0. The generation article whose production years cover the car's year.
  *  1. Exact English article title (follows redirects — "Mazda 3" → "Mazda3").
  *  2. English title-scoped search, which keeps both make and model in the title
  *     and so cannot drift to an unrelated model.
@@ -311,13 +453,21 @@ export async function fetchVehicleImage(
   /** The clean brand from lib/manufacturer.ts, not the raw `tozeret_nm`. */
   brand: string,
   kinuyMishari: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  /** Production year, to prefer the photo of the matching generation. */
+  year: number | null = null
 ): Promise<VehicleImage | null> {
   const make = latinMake(brand);
   const model = cleanModel(kinuyMishari, make);
   if (!model) return null;
 
   if (make) {
+    // Most specific first: the generation built in this car's year.
+    if (year !== null) {
+      const generation = await generationImage(make, model, year, signal);
+      if (generation) return generation;
+    }
+
     const isModel = (title: string) => titleMatchesModel(title, make, model);
 
     const exact = await wikiQuery(

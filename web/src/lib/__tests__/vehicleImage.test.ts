@@ -4,7 +4,13 @@
  * Wikipedia articles a search returns for them.
  */
 import { describe, expect, it } from 'vitest';
-import { cleanModel, titleMatchesModel } from '@/lib/vehicleImage';
+import {
+  cleanModel,
+  isGenerationTitle,
+  parseProductionYears,
+  pickGeneration,
+  titleMatchesModel,
+} from '@/lib/vehicleImage';
 
 describe('cleanModel', () => {
   it('strips the brand the registry repeats inside the model name', () => {
@@ -86,5 +92,73 @@ describe('titleMatchesModel', () => {
   it('works for Hebrew titles', () => {
     expect(titleMatchesModel('אלפא רומיאו 159', 'אלפא רומיאו', '159')).toBe(true);
     expect(titleMatchesModel('אלפא רומיאו', 'אלפא רומיאו', '159')).toBe(false);
+  });
+});
+
+describe('parseProductionYears — real infobox shapes', () => {
+  const NOW = new Date(2026, 8, 1);
+
+  it('reads a simple range, with "present" as this year', () => {
+    expect(parseProductionYears('| name = i10\n| production = 2007–present\n| body_style = hatch', NOW))
+      .toEqual({ from: 2007, to: 2026 });
+  });
+
+  it('reads a multi-line list and ignores citation dates', () => {
+    const wikitext = [
+      '| production = {{unbulleted list',
+      '  | June 2018 – present (hatchback)',
+      '  | January 2019 – present (saloon/estate)<ref name="uk">{{cite news |date=16 January 2031}}</ref>',
+      '}}',
+      '| model_years = 2019–present',
+    ].join('\n');
+    expect(parseProductionYears(wikitext, NOW)).toEqual({ from: 2018, to: 2026 });
+  });
+
+  it('spans body-style variants on one line', () => {
+    expect(parseProductionYears('| production = 2008–2013<br>2011–2016 (cabriolet)\n| x = y', NOW))
+      .toEqual({ from: 2008, to: 2016 });
+  });
+
+  it('falls back to model years, and is null with neither', () => {
+    expect(parseProductionYears('| model_years = 2009–2013', NOW)).toEqual({ from: 2009, to: 2013 });
+    expect(parseProductionYears('| name = Something', NOW)).toBeNull();
+  });
+});
+
+describe('isGenerationTitle', () => {
+  it('recognises generation articles of this model', () => {
+    expect(isGenerationTitle('Toyota Corolla (E210)', 'Toyota', 'COROLLA')).toBe(true);
+    expect(isGenerationTitle('Volkswagen Golf Mk6', 'Volkswagen', 'GOLF')).toBe(true);
+  });
+
+  it('rejects the main article and other models', () => {
+    expect(isGenerationTitle('Toyota Corolla', 'Toyota', 'COROLLA')).toBe(false);
+    expect(isGenerationTitle('Toyota Corolla Cross (XG10)', 'Toyota', 'COROLLA')).toBe(false);
+    expect(isGenerationTitle('Toyota Camry (XV70)', 'Toyota', 'COROLLA')).toBe(false);
+  });
+});
+
+describe('pickGeneration', () => {
+  // Real Corolla ranges, including the long regional tails that overlap.
+  const generations = [
+    { title: 'E120', from: 2000, to: 2017 },
+    { title: 'E140', from: 2006, to: 2013 },
+    { title: 'E170', from: 2013, to: 2026 },
+    { title: 'E210', from: 2018, to: 2026 },
+  ];
+
+  it('picks the most recent generation in production that year', () => {
+    expect(pickGeneration(generations, 2009)?.title).toBe('E140');
+    expect(pickGeneration(generations, 2016)?.title).toBe('E170');
+    expect(pickGeneration(generations, 2021)?.title).toBe('E210');
+  });
+
+  it('is not fooled by an old generation still built in one market', () => {
+    // E120 ran in China until 2017, but a 2016 car is not an E120.
+    expect(pickGeneration(generations, 2016)?.title).not.toBe('E120');
+  });
+
+  it('does not guess outside every range', () => {
+    expect(pickGeneration(generations, 1999)).toBeNull();
   });
 });
