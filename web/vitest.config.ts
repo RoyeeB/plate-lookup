@@ -1,6 +1,7 @@
 /**
  * Vitest configuration, kept separate from vite.config.ts so the test runner
- * never pulls the React plugin (or jsdom) into what is pure-logic unit testing.
+ * never pulls in the React plugin. Pure-logic tests run in `node`; component
+ * tests opt into jsdom per file with a `@vitest-environment jsdom` docblock.
  * Mirrors the `@/` -> `src/` alias from tsconfig/vite so test imports match
  * the app's own import style.
  */
@@ -13,5 +14,6 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    setupFiles: ['./src/test/setup.ts'],
   },
 });
