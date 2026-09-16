@@ -22,7 +22,7 @@ import {
 import { estimateSpecs } from '@/lib/estimates';
 import { licenseStatus } from '@/lib/licenseStatus';
 import { mileageInsight, positiveNumber, vehicleName } from '@/lib/vehicleSummary';
-import { resolveManufacturer } from '@/lib/manufacturer';
+import { resolveManufacturer } from '@shared/manufacturer';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useInView } from '@/hooks/useInView';
 import { PlateBadge } from '@/components/PlateBadge';

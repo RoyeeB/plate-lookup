@@ -15,7 +15,7 @@ import type {
   PriceRaw,
 } from './types';
 import type { MappedField } from './mapper';
-import { displayImporter } from '@/lib/manufacturer';
+import { displayImporter } from '@shared/manufacturer';
 
 function isEmpty(value: CkanValue | undefined): boolean {
   if (value === null || value === undefined) return true;

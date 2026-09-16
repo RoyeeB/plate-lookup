@@ -9,7 +9,7 @@
  * current age would understate the yearly rate.
  */
 import type { CkanValue, HistoryRaw, VehicleRecordRaw } from '@/api/types';
-import { resolveManufacturer } from '@/lib/manufacturer';
+import { resolveManufacturer } from '@shared/manufacturer';
 
 /** Rough Israeli private-car average, used only to band the result. */
 export const AVERAGE_KM_PER_YEAR = 15_000;

@@ -9,7 +9,7 @@ import {
   displayImporter,
   resolveManufacturer,
   splitRegistryName,
-} from '@/lib/manufacturer';
+} from '@shared/manufacturer';
 
 describe('resolveManufacturer — from the Ministry catalogue', () => {
   it('splits brand and country by code', () => {

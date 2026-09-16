@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Builds src/data/manufacturers.json: for every manufacturer code in the car
+ * Builds shared/manufacturers.json: for every manufacturer code in the car
  * registry, the clean brand and country of manufacture as the Ministry of
  * Transport itself publishes them.
  *
@@ -11,7 +11,7 @@
  * untruncated answer to look up instead of guessing by cutting strings.
  *
  * The JSON holds the Ministry's values verbatim; all spelling normalisation is
- * done in src/lib/manufacturer.ts, where it is visible and tested.
+ * done in shared/manufacturer.ts, where it is visible and tested.
  *
  * Usage: node scripts/build-manufacturers.mjs
  *
@@ -94,7 +94,7 @@ const entries = await pool([...codes].sort((a, b) => a - b), 8, async (cd) => {
 
 const useful = entries.filter((e) => e.brand || e.names.length > 0);
 await writeFile(
-  new URL('../src/data/manufacturers.json', import.meta.url),
+  new URL('../shared/manufacturers.json', import.meta.url),
   `${JSON.stringify(useful, null, 0).replace(/\},\{/g, '},\n{')}\n`
 );
 console.log(

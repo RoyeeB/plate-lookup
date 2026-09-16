@@ -4,7 +4,7 @@
  */
 import { t } from '@/i18n';
 import type { DisplayField, VehicleRecordRaw, CkanValue } from './types';
-import { resolveManufacturer } from '@/lib/manufacturer';
+import { resolveManufacturer } from '@shared/manufacturer';
 
 /** The official fields to show, in display order, with their Hebrew labels. */
 const FIELD_ORDER: ReadonlyArray<{ key: keyof typeof t.fields; copyable?: boolean }> = [

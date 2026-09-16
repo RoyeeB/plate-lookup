@@ -10,7 +10,7 @@
  * mode throws on `setItem`, and a blocked-cookies profile throws on read too.
  */
 import { normalizePlate } from './plate';
-import { displayBrand } from './manufacturer';
+import { displayBrand } from '@shared/manufacturer';
 
 const STORAGE_KEY = 'plate-lookup:recent-searches:v2';
 const LEGACY_KEY = 'plate-lookup:recent-searches:v1';

@@ -15,7 +15,7 @@ import {
 import type { VehicleEnrichment, VehicleLookupResult } from './types';
 import { fetchEnrichment } from './enrich';
 import { fetchVehicleImage, type VehicleImage } from '@/lib/vehicleImage';
-import { resolveManufacturer } from '@/lib/manufacturer';
+import { resolveManufacturer } from '@shared/manufacturer';
 import { normalizePlate, isValidPlate } from '@/lib/plate';
 import {
   addRecentSearch,

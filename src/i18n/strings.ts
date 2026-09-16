@@ -58,6 +58,7 @@ export const he = {
   // Labels for official registry fields (data.gov.il keys → Hebrew)
   fields: {
     tozeret_nm: 'יצרן',
+    tozeret_eretz_nm: 'ארץ ייצור',
     kinuy_mishari: 'דגם מסחרי',
     degem_nm: 'קוד דגם',
     ramat_gimur: 'רמת גימור',

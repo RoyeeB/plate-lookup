@@ -1,0 +1,13 @@
+{
+  "//": "Nearest tsconfig for bundlers transforming these files from either app. Keeps them from walking up to the root Expo config. Type-checking happens in each app's own program, which includes this folder.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true
+  },
+  "include": ["*.ts", "*.json"]
+}
