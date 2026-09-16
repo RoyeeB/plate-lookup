@@ -46,4 +46,3 @@ jobs:
       - run: npm ci
       # Type-checks the Expo app and shared/ (the web app is excluded).
       - run: npx tsc --noEmit
-        continue-on-error: true # known React Native 0.87 canary StyleProp typing errors
