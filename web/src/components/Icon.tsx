@@ -25,7 +25,15 @@ export type IconName =
   | 'calendar'
   | 'fuel'
   | 'gauge'
-  | 'key';
+  | 'key'
+  | 'sun'
+  | 'moon'
+  | 'monitor'
+  | 'download'
+  | 'compare'
+  | 'clipboard-check'
+  | 'x-circle'
+  | 'check-circle';
 
 const PATHS: Record<IconName, ReactElement> = {
   camera: (
@@ -130,6 +138,51 @@ const PATHS: Record<IconName, ReactElement> = {
       <path d="M4.2 17.5a9 9 0 1 1 15.6 0" />
       <path d="m12 13.5 3.5-4" />
       <circle cx="12" cy="13.5" r="1.2" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
+    </>
+  ),
+  moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />,
+  monitor: (
+    <>
+      <rect x="3" y="4" width="18" height="12.5" rx="2" />
+      <path d="M8.5 20.5h7M12 16.5v4" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 4v11" />
+      <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
+      <path d="M4.5 19.5h15" />
+    </>
+  ),
+  compare: (
+    <>
+      <rect x="3.5" y="4" width="7" height="16" rx="1.5" />
+      <rect x="13.5" y="4" width="7" height="16" rx="1.5" />
+    </>
+  ),
+  'clipboard-check': (
+    <>
+      <rect x="5" y="4.5" width="14" height="16.5" rx="2" />
+      <path d="M9 4.5V3.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+      <path d="m9 13 2 2 4-4" />
+    </>
+  ),
+  'x-circle': (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 9 6 6M15 9l-6 6" />
+    </>
+  ),
+  'check-circle': (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12.5 2.8 2.8L16 10" />
     </>
   ),
   key: (

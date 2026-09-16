@@ -3,8 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#F4C400" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4C400" />
+    <script>
+      // Apply the colour theme before first paint (no light flash on a dark
+      // page). Mirrors resolveTheme() in src/lib/theme.ts.
+      (function () {
+        var choice = 'system';
+        try {
+          choice = localStorage.getItem('plate-lookup:theme') || 'system';
+        } catch (e) {}
+        var dark =
+          choice === 'dark' ||
+          (choice !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#0f1115' : '#F4C400';
+      })();
+    </script>
     <meta
       name="description"
       content="איתור פרטי רכב לפי מספר לוחית רישוי מתוך מרשם הרכב של משרד התחבורה (data.gov.il)"

@@ -6,6 +6,14 @@
 export const he = {
   appName: 'איתור לוחית',
 
+  // Colour theme toggle
+  theme: {
+    label: 'ערכת צבעים: {current}. לחצו להחלפה',
+    system: 'לפי המכשיר',
+    light: 'בהירה',
+    dark: 'כהה',
+  },
+
   // Home
   home: {
     title: 'איתור פרטי רכב',

@@ -495,6 +495,36 @@ button.spec-row.spec-row--copied {
   }
 }
 
+/* ---------- Theme toggle: the new icon turns in ---------- */
+.theme-toggle__icon {
+  display: inline-flex;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-toggle__icon {
+    animation: icon-turn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+
+@keyframes icon-turn {
+  from {
+    opacity: 0;
+    rotate: -90deg;
+    scale: 0.6;
+  }
+}
+
+/* Colours cross-fade when the theme changes, instead of snapping. */
+@media (prefers-reduced-motion: no-preference) {
+  :root.theme-transition,
+  :root.theme-transition * {
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      color 0.3s ease !important;
+  }
+}
+
 /* ---------- Print: everything visible, nothing mid-animation ---------- */
 @media print {
   *,

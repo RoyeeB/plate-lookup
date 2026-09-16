@@ -108,6 +108,30 @@ button {
   background: var(--surface-muted);
 }
 
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  margin-inline-start: auto;
+  margin-inline-end: calc(var(--sp-sm) * -1);
+}
+
+.app-header__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text);
+}
+
+.app-header__icon-button:hover {
+  background: var(--surface-muted);
+}
+
 .app-main {
   flex: 1;
   display: flex;

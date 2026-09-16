@@ -6,6 +6,7 @@ import { ToastProvider } from '@/hooks/useToast';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Icon } from '@/components/Icon';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import HomePage from '@/pages/HomePage';
 import VehiclePage from '@/pages/VehiclePage';
 // Order matters: base rules first, then the stylesheets that refine them.
@@ -58,6 +59,9 @@ function Chrome() {
           </button>
         )}
         <h1 className="app-header__title">{title}</h1>
+        <div className="app-header__actions">
+          <ThemeToggle />
+        </div>
       </header>
       <main className="app-main">
         <Routes>
