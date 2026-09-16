@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { t } from '@/i18n';
 import { isValidPlate, normalizePlate } from '@/lib/plate';
 import {
   isNotFound,
+  useRecentSearches,
   useVehicle,
   useVehicleEnrichment,
   useVehicleImage,
@@ -19,6 +20,7 @@ import {
   summarizeOwnership,
 } from '@/api/specMapper';
 import { estimateSpecs } from '@/lib/estimates';
+import { licenseStatus } from '@/lib/licenseStatus';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { PlateBadge } from '@/components/PlateBadge';
 import { SpecCard } from '@/components/SpecCard';
@@ -30,8 +32,10 @@ import { Icon } from '@/components/Icon';
 import { PriceCard } from '@/components/PriceCard';
 import { FeatureChips } from '@/components/FeatureChips';
 import { RecallBanner } from '@/components/RecallBanner';
+import { LicenseBanner } from '@/components/LicenseBanner';
 import { OwnershipCard } from '@/components/OwnershipCard';
 import { VehicleImageCard } from '@/components/VehicleImageCard';
+import { ShareButton } from '@/components/ShareButton';
 import { Skeleton } from '@/components/Skeleton';
 
 export default function VehiclePage() {
@@ -41,8 +45,14 @@ export default function VehiclePage() {
   const navigate = useNavigate();
 
   const { data, isLoading, isError, error, refetch, isFetching } = useVehicle(plate);
-  const { data: extra, isLoading: extraLoading } = useVehicleEnrichment(data);
+  const {
+    data: extra,
+    isLoading: extraLoading,
+    isFetching: extraFetching,
+    refetch: refetchExtra,
+  } = useVehicleEnrichment(data);
   const { data: image } = useVehicleImage(data);
+  const { add } = useRecentSearches();
 
   const officialFields = useMemo(
     () => (data ? mapOfficialFields(data.record) : []),
@@ -53,6 +63,32 @@ export default function VehiclePage() {
   const features = useMemo(() => mapFeatures(extra?.modelSpec ?? null), [extra]);
   const historyFields = useMemo(() => mapHistory(extra?.history ?? null), [extra]);
   const price = useMemo(() => mapPrice(extra?.price ?? null), [extra]);
+
+  const license = useMemo(
+    () => (data ? licenseStatus(data.record) : null),
+    [data]
+  );
+
+  /** "טויוטה קורולה 2019" — used for the history list and the share text. */
+  const carName = useMemo(() => {
+    if (!data) return undefined;
+    const parts = [data.record.tozeret_nm, data.record.kinuy_mishari, data.record.shnat_yitzur];
+    const name = parts.map((p) => String(p ?? '').trim()).filter(Boolean).join(' ');
+    return name || undefined;
+  }, [data]);
+
+  // Record what this plate actually is, so the recent-searches list on the home
+  // screen reads as cars rather than as seven-digit numbers. This also covers
+  // arriving straight at a shared link, which never passed through the home
+  // screen's own "add".
+  useEffect(() => {
+    if (!data) return;
+    add(plate, {
+      make: String(data.record.tozeret_nm ?? '').trim() || undefined,
+      model: String(data.record.kinuy_mishari ?? '').trim() || undefined,
+      year: String(data.record.shnat_yitzur ?? '').trim() || undefined,
+    });
+  }, [add, data, plate]);
 
   const ownership = useMemo(() => {
     if (!data || !extra) return null;
@@ -159,9 +195,13 @@ export default function VehiclePage() {
           </div>
         )}
 
-        <VehicleImageCard image={image} />
-
+        {/* Both of these are things to act on, so they precede the data. The
+            licence comes from the main record and is here immediately; recalls
+            arrive with the enrichment. */}
+        <LicenseBanner status={license} />
         {extra && <RecallBanner recalls={extra.recalls} />}
+
+        <VehicleImageCard image={image} />
 
         <SpecCard title={t.vehicle.officialTitle} fields={officialFields} />
 
@@ -169,6 +209,25 @@ export default function VehiclePage() {
           <EnrichmentSkeleton />
         ) : (
           <>
+            {extra?.incomplete && (
+              <div className="enrichment-note">
+                <Icon name="info-circle" size={18} />
+                <span className="enrichment-note__text">
+                  <span className="enrichment-note__title">
+                    {t.enrichment.partialTitle}
+                  </span>
+                  {t.enrichment.partialBody}
+                  <button
+                    type="button"
+                    className="enrichment-note__retry"
+                    onClick={() => void refetchExtra()}
+                    disabled={extraFetching}
+                  >
+                    {t.states.retry}
+                  </button>
+                </span>
+              </div>
+            )}
             <PriceCard price={price} />
             <OwnershipCard ownership={ownership} loaded={extra !== undefined} />
             <SpecCard
@@ -186,7 +245,8 @@ export default function VehiclePage() {
         <p className="source-note">{t.vehicle.source}</p>
       </div>
 
-      <div className="screen__actions">
+      <div className="screen__actions screen__actions--row">
+        <ShareButton plate={plate} description={carName} />
         <Button
           label={t.vehicle.searchAgain}
           icon="search"

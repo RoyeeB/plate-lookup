@@ -1,0 +1,136 @@
+/**
+ * Styles for the screen-level pieces added after the first port: the licence
+ * banner, the share action, the partial-enrichment note and the richer recent
+ * search rows. Kept out of app.css so the two files can be worked on
+ * independently; tokens all come from theme.css.
+ */
+
+/* ---------- Licence validity ("טסט") ---------- */
+.license {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-md);
+  border-radius: var(--r-lg);
+  padding: var(--sp-lg);
+  border: 1px solid transparent;
+}
+
+.license--expired {
+  background: var(--license-expired-bg);
+  border-color: var(--license-expired-border);
+  color: var(--danger);
+}
+
+.license--soon {
+  background: var(--license-soon-bg);
+  border-color: var(--license-soon-border);
+  color: var(--warning);
+}
+
+.license--valid {
+  background: var(--license-valid-bg);
+  border-color: var(--license-valid-border);
+  color: var(--success);
+}
+
+.license__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  min-width: 0;
+}
+
+.license__title {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  margin: 0;
+}
+
+.license__body {
+  font-size: var(--fs-sm);
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* The countdown is the part people actually read, so it gets its own weight. */
+.license__meta {
+  align-self: flex-start;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  /* Muted rather than --surface: on a dark page --surface equals the page
+     background, and the chip would vanish into the tinted banner. */
+  background: var(--surface-muted);
+  border-radius: var(--r-pill);
+  padding: 2px var(--sp-md);
+  margin-top: var(--sp-xs);
+}
+
+/* ---------- Partially-failed enrichment ---------- */
+.enrichment-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-sm);
+  background: var(--surface-muted);
+  border-radius: var(--r-md);
+  padding: var(--sp-md);
+  color: var(--text-secondary);
+}
+
+.enrichment-note__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  min-width: 0;
+}
+
+.enrichment-note__title {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.enrichment-note__retry {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: var(--sp-xs) 0 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--info);
+}
+
+/* ---------- Recent searches: plate + what the car actually is ---------- */
+.recent__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.recent__desc {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* ---------- Vehicle screen action row ---------- */
+.screen__actions--row {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/* The share button is secondary, so it takes the smaller share of the row. */
+.screen__actions--row .btn--secondary {
+  flex: 0 0 38%;
+}
+
+.screen__actions--row .btn--primary {
+  flex: 1;
+}

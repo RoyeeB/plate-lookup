@@ -172,8 +172,14 @@ export function estimateSpecs(
       ? Math.round(officialGross * CURB_FRACTION_OF_GROSS)
       : estimateCurbWeight(displacement, fuel);
 
-  const torque = estimateTorque(hp, fuel);
-  const zeroTo100 = estimateZeroToHundred(hp, curbWeight);
+  // Both remaining formulas are calibrated on combustion cars and are simply
+  // wrong for an EV: an electric motor makes far more torque per horsepower,
+  // and its instant full torque beats what power-to-weight predicts. Showing a
+  // confident-looking wrong number is worse than showing nothing, so for an EV
+  // we publish neither and the section disappears.
+  const isElectric = fuel === 'electric';
+  const torque = isElectric ? null : estimateTorque(hp, fuel);
+  const zeroTo100 = isElectric ? null : estimateZeroToHundred(hp, curbWeight);
 
   const specs: EstimatedSpec[] = [];
   const { approx } = t.estimates;

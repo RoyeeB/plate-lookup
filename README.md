@@ -5,7 +5,27 @@ or captured by camera — and returns the vehicle's official registry details fr
 Israeli government open data (data.gov.il). Hebrew-first, RTL, on-device OCR, no
 API key, no owner personal information.
 
-Built with **Expo (SDK 54) + TypeScript (strict) + expo-router**.
+Built with **Expo + TypeScript (strict) + expo-router**. This repo currently
+pins `expo@58.0.0-canary` with `react-native@0.87.0` — the canary was adopted to
+clear the Swift 6.2 toolchain gap described below.
+
+---
+
+## 🌐 There is also a web build, in `web/`
+
+`web/` is a standalone **Vite + React** port of the same product: same Hebrew
+RTL design, same data source, same honesty rules — but it runs in a browser, so
+it needs no Xcode, no prebuild and no app store. It is an installable PWA with
+offline support, dark mode, browser OCR via tesseract.js, and a unit-test suite.
+
+```bash
+cd web && npm install && npm run dev     # http://localhost:5173
+```
+
+It shares no code with the native app at runtime — the pure TypeScript layers
+were copied over and the React Native pieces rewritten. See `web/README.md`.
+**If you change shared logic (plate parsing, estimates, ownership rules), it
+must be changed in both places.**
 
 ---
 
@@ -54,6 +74,11 @@ npm start        # expo start --dev-client
 ---
 
 ## ⚠️ Toolchain compatibility (Xcode / Swift version)
+
+> **Status:** the dependency bump to the SDK 58 canary (above) was made to get
+> past this. Whether a local `expo run:ios` now completes has **not** been
+> re-verified since the bump — if it still fails, the EAS path below applies.
+> The history below is kept because it explains *why* the canary is pinned.
 
 Expo SDK 57 is validated against **Xcode 16.x / 26.0 (Swift 6.0–6.1)**. Its core
 native package `expo-modules-jsi` (57.0.8, the latest published) is compiled

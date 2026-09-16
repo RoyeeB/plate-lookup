@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { t } from '@/i18n';
 import { ToastProvider } from '@/hooks/useToast';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Icon } from '@/components/Icon';
 import HomePage from '@/pages/HomePage';
 import VehiclePage from '@/pages/VehiclePage';
@@ -70,15 +71,18 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        {pathname === '/scan' ? (
-          <Suspense fallback={<div className="scan" />}>
-            <Routes>
-              <Route path="/scan" element={<ScanPage />} />
-            </Routes>
-          </Suspense>
-        ) : (
-          <Chrome />
-        )}
+        {/* A render error in one card must not blank the whole page. */}
+        <ErrorBoundary>
+          {pathname === '/scan' ? (
+            <Suspense fallback={<div className="scan" />}>
+              <Routes>
+                <Route path="/scan" element={<ScanPage />} />
+              </Routes>
+            </Suspense>
+          ) : (
+            <Chrome />
+          )}
+        </ErrorBoundary>
       </ToastProvider>
     </QueryClientProvider>
   );

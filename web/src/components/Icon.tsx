@@ -18,7 +18,11 @@ export type IconName =
   | 'info-circle'
   | 'copy'
   | 'refresh'
-  | 'check';
+  | 'check'
+  | 'share'
+  | 'flash'
+  | 'flash-off'
+  | 'calendar';
 
 const PATHS: Record<IconName, ReactElement> = {
   camera: (
@@ -91,6 +95,26 @@ const PATHS: Record<IconName, ReactElement> = {
     </>
   ),
   check: <path d="m5 12.5 4.5 4.5L19 7" />,
+  share: (
+    <>
+      <path d="M12 3v11" />
+      <path d="m8.5 6.5 3.5-3.5 3.5 3.5" />
+      <path d="M7.5 10.5H6a2 2 0 0 0-2 2v6.5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V12.5a2 2 0 0 0-2-2h-1.5" />
+    </>
+  ),
+  flash: <path d="M13 2.5 5 13.5h6l-1 8 8-11.5h-6z" />,
+  'flash-off': (
+    <>
+      <path d="M13 2.5 5 13.5h6l-1 8 8-11.5h-6z" />
+      <path d="M3.5 3.5 20.5 20.5" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+      <path d="M8 3v4M16 3v4M3.5 10.5h17" />
+    </>
+  ),
 };
 
 interface IconProps {

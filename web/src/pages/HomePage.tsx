@@ -58,7 +58,7 @@ export default function HomePage() {
         )}
 
         <RecentSearches
-          plates={recent}
+          items={recent}
           onSelect={goToVehicle}
           onClear={clear}
         />

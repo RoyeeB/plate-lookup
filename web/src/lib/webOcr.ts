@@ -7,9 +7,15 @@
  * The worker is created lazily on first scan and kept alive for the session,
  * because spinning it up (downloading the trained-data file) costs a few
  * seconds and we don't want to pay that on every capture.
+ *
+ * A single shutter press is unreliable on its own — one blurry or glare-lit
+ * frame can misread a digit — so `recognizePlateConsensus` captures several
+ * frames in quick succession, gives each a plain and (if needed) an
+ * inverted/binarized pass, and hands the resulting candidates to
+ * `pickConsensus` (in `./ocr`, which stays DOM-free) to settle on one answer.
  */
 import { createWorker, type Worker } from 'tesseract.js';
-import { extractPlateFromResult, type OcrTextResult } from './ocr';
+import { extractPlateFromResult, pickConsensus, type OcrTextResult } from './ocr';
 
 let workerPromise: Promise<Worker> | null = null;
 
@@ -136,11 +142,99 @@ function toHighContrastGrayscale(
 }
 
 /** Run OCR over a canvas and return the best plate candidate, or null. */
-export async function recognizePlate(canvas: HTMLCanvasElement): Promise<string | null> {
+async function recognizeCanvas(canvas: HTMLCanvasElement): Promise<string | null> {
   const worker = await getWorker();
   const { data } = await worker.recognize(canvas, {}, { text: true, blocks: true });
 
   const blocks = (data.blocks ?? []).map((b) => ({ text: b.text ?? '' }));
   const result: OcrTextResult = { text: data.text ?? '', blocks };
   return extractPlateFromResult(result);
+}
+
+/**
+ * Invert + binarize an already contrast-stretched crop.
+ *
+ * `captureGuideFrame` produces a grayscale, contrast-stretched image where
+ * plate digits are dark-on-light (black digits, yellow field lightened to
+ * near-white). Tesseract's bundled model is trained mostly on dark text on a
+ * light background, which this already matches — but on a washed-out or
+ * glare-heavy capture that first pass sometimes reads as noise. Inverting to
+ * light-on-dark and snapping every pixel to pure black/white gives the
+ * engine a second, very different-looking shot at the same frame.
+ */
+function invertedVariant(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const out = document.createElement('canvas');
+  out.width = canvas.width;
+  out.height = canvas.height;
+
+  const srcCtx = canvas.getContext('2d', { willReadFrequently: true });
+  const outCtx = out.getContext('2d');
+  if (!srcCtx || !outCtx) return out;
+
+  const image = srcCtx.getImageData(0, 0, canvas.width, canvas.height);
+  const { data } = image;
+  for (let i = 0; i < data.length; i += 4) {
+    // The source is already grayscale, so R/G/B are equal; inverting and
+    // thresholding at the midpoint turns it into a clean binary mask.
+    const inverted = 255 - data[i];
+    const bw = inverted > 127 ? 255 : 0;
+    data[i] = bw;
+    data[i + 1] = bw;
+    data[i + 2] = bw;
+  }
+  outCtx.putImageData(image, 0, 0);
+  return out;
+}
+
+/**
+ * Recognize one captured frame, falling back to the inverted/binarized
+ * variant when the plain contrast-stretched crop yields no plate-shaped
+ * digit run at all.
+ */
+async function recognizeFrame(canvas: HTMLCanvasElement): Promise<string | null> {
+  const plain = await recognizeCanvas(canvas);
+  if (plain) return plain;
+  return recognizeCanvas(invertedVariant(canvas));
+}
+
+/** How many frames one shutter press captures, and the gap between them. */
+const CONSENSUS_FRAME_COUNT = 3;
+const CONSENSUS_FRAME_INTERVAL_MS = 150;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * One shutter press, several frames: capture `CONSENSUS_FRAME_COUNT` frames
+ * spaced `CONSENSUS_FRAME_INTERVAL_MS` apart (letting focus/exposure settle
+ * and averaging out a single bad frame — motion blur, glare, a finger
+ * twitch), OCR each independently, then let `pickConsensus` decide.
+ *
+ * Throws only when the guide/video geometry itself is unusable (e.g. the
+ * layout hasn't measured yet) — that is a real error, distinct from simply
+ * not finding a plate, which resolves to `null` instead.
+ */
+export async function recognizePlateConsensus(
+  video: HTMLVideoElement,
+  guide: GuideRect
+): Promise<string | null> {
+  const candidates: string[] = [];
+  let capturedAnyFrame = false;
+
+  for (let i = 0; i < CONSENSUS_FRAME_COUNT; i += 1) {
+    const canvas = captureGuideFrame(video, guide);
+    if (canvas) {
+      capturedAnyFrame = true;
+      const plate = await recognizeFrame(canvas);
+      if (plate) candidates.push(plate);
+    }
+    if (i < CONSENSUS_FRAME_COUNT - 1) await delay(CONSENSUS_FRAME_INTERVAL_MS);
+  }
+
+  if (!capturedAnyFrame) {
+    throw new Error('Could not capture a video frame for the guide box');
+  }
+
+  return pickConsensus(candidates);
 }

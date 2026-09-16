@@ -4,7 +4,7 @@ import { t } from '@/i18n';
 import { normalizePlate } from '@/lib/plate';
 import { useRecentSearches } from '@/api/queries';
 import { useCamera } from '@/hooks/useCamera';
-import { captureGuideFrame, preloadOcr, recognizePlate, terminateOcr } from '@/lib/webOcr';
+import { preloadOcr, recognizePlateConsensus, terminateOcr } from '@/lib/webOcr';
 import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { Button } from '@/components/Button';
 import { StateView } from '@/components/StateView';
@@ -15,7 +15,7 @@ type ScanState = 'camera' | 'processing' | 'confirm' | 'error';
 
 export default function ScanPage() {
   const navigate = useNavigate();
-  const { videoRef, status, start, stop } = useCamera();
+  const { videoRef, status, start, stop, torchAvailable, torchOn, toggleTorch } = useCamera();
   const cutoutRef = useRef<HTMLDivElement | null>(null);
   const [state, setState] = useState<ScanState>('camera');
   const [detected, setDetected] = useState('');
@@ -45,7 +45,10 @@ export default function ScanPage() {
     try {
       const videoBox = video.getBoundingClientRect();
       const guideBox = cutout.getBoundingClientRect();
-      const canvas = captureGuideFrame(video, {
+      // Captures a short burst of frames and OCRs each — takes ~1s, hence the
+      // 'processing' overlay staying up (and the shutter staying disabled)
+      // for the whole call, not just a single recognize().
+      const plate = await recognizePlateConsensus(video, {
         x: guideBox.left - videoBox.left,
         y: guideBox.top - videoBox.top,
         width: guideBox.width,
@@ -54,12 +57,6 @@ export default function ScanPage() {
         displayHeight: videoBox.height,
       });
 
-      if (!canvas) {
-        setState('error');
-        return;
-      }
-
-      const plate = await recognizePlate(canvas);
       if (plate) {
         setDetected(plate);
         setState('confirm'); // never auto-search — user must confirm
@@ -140,6 +137,19 @@ export default function ScanPage() {
         >
           <Icon name="close" size={28} />
         </button>
+
+        {/* iOS Safari has no torch API at all — hide the control entirely
+            rather than showing a button that can never do anything. */}
+        {torchAvailable && (
+          <button
+            type="button"
+            className="scan__icon-button"
+            onClick={() => void toggleTorch()}
+            aria-label={torchOn ? t.scan.torchOff : t.scan.torchOn}
+          >
+            <Icon name={torchOn ? 'flash-off' : 'flash'} size={24} />
+          </button>
+        )}
       </div>
 
       <div className="scan__bottom-bar">

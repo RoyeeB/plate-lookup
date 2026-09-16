@@ -31,23 +31,33 @@ export class VehicleNotFoundError extends Error {
   }
 }
 
-function buildUrl(resourceId: string, plate: string): string {
-  const q = JSON.stringify({ mispar_rechev: plate });
-  const params = new URLSearchParams({
-    resource_id: resourceId,
-    q,
-    limit: '1',
-  });
+/**
+ * CKAN offers two ways to match a column. `filters` is an exact match on an
+ * indexed column; `q` is a fuzzy full-text search that can match a record whose
+ * plate merely contains the digits. Filters is both stricter and faster, so it
+ * goes first — `q` stays as a fallback for any resource where the column is
+ * stored as padded text and so never matches a number.
+ */
+type MatchMode = 'filters' | 'q';
+
+function buildUrl(resourceId: string, plate: string, mode: MatchMode): string {
+  const params = new URLSearchParams({ resource_id: resourceId, limit: '1' });
+
+  if (mode === 'filters') {
+    // The registry stores mispar_rechev numerically, so leading zeros must go —
+    // which is also what the enrichment joins do with the same plate.
+    params.set('filters', JSON.stringify({ mispar_rechev: Number(plate) }));
+  } else {
+    params.set('q', JSON.stringify({ mispar_rechev: plate }));
+  }
+
   return `${CKAN_BASE_URL}?${params.toString()}`;
 }
 
-async function queryDataset(
-  dataset: DatasetConfig,
-  plate: string,
+async function fetchOne(
+  url: string,
   signal: AbortSignal
 ): Promise<VehicleRecordRaw | null> {
-  const url = buildUrl(dataset.id, plate);
-
   let response: Response;
   try {
     response = await fetch(url, {
@@ -79,6 +89,19 @@ async function queryDataset(
 
   const record = json.result.records[0];
   return record ?? null;
+}
+
+async function queryDataset(
+  dataset: DatasetConfig,
+  plate: string,
+  signal: AbortSignal
+): Promise<VehicleRecordRaw | null> {
+  // An all-digit plate can be matched exactly; anything else only by search.
+  if (/^\d+$/.test(plate)) {
+    const exact = await fetchOne(buildUrl(dataset.id, plate, 'filters'), signal);
+    if (exact) return exact;
+  }
+  return fetchOne(buildUrl(dataset.id, plate, 'q'), signal);
 }
 
 /**

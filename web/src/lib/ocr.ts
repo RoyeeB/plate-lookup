@@ -10,6 +10,11 @@
  *  3. Strip non-digits from each candidate.
  *  4. Pick the longest digit run of length 5-8.
  *  5. If nothing qualifies, return null — never guess.
+ *
+ * Also home to `pickConsensus`, which resolves multiple frames' worth of
+ * candidates into one answer (see its own doc comment). Both stay free of
+ * DOM/canvas APIs so they run the same way in a browser and in a plain Node
+ * unit test.
  */
 import { MAX_PLATE_DIGITS, MIN_PLATE_DIGITS } from './plate';
 
@@ -90,4 +95,36 @@ export function extractPlateFromResult(
   // Also include the full flattened text as a fallback block.
   if (result.text) blockTexts.push(result.text);
   return extractPlateFromBlocks(blockTexts);
+}
+
+/**
+ * Multi-frame consensus: given one plate-digit candidate per captured frame
+ * (nulls/failed frames already filtered out by the caller), pick the value
+ * the most frames agree on.
+ *
+ * A single frame that disagrees with the rest must never win over a
+ * majority — that's the whole point of capturing more than one frame. Ties
+ * are broken by whichever candidate was seen first, since the earliest frame
+ * is captured right as the shutter is pressed, before any hand shake has a
+ * chance to build up. Kept DOM-free and pure so it can be unit-tested in
+ * Node without a browser or canvas.
+ */
+export function pickConsensus(candidates: string[]): string | null {
+  const counts = new Map<string, number>();
+  for (const candidate of candidates) {
+    counts.set(candidate, (counts.get(candidate) ?? 0) + 1);
+  }
+
+  let best: string | null = null;
+  let bestCount = 0;
+  for (const candidate of candidates) {
+    const count = counts.get(candidate) ?? 0;
+    // Strictly greater, not >=, so the first candidate to reach a given
+    // count keeps its lead — that's the earliest-wins tie-break.
+    if (count > bestCount) {
+      bestCount = count;
+      best = candidate;
+    }
+  }
+  return best;
 }

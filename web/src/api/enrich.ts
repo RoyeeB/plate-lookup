@@ -46,19 +46,36 @@ async function queryRows<T>(
     headers: { Accept: 'application/json' },
     signal,
   });
-  if (!response.ok) return [];
+  // A 5xx or a bad resource id is a failure, not an empty result. Throwing here
+  // is what lets the caller tell the page "some data is missing" instead of
+  // silently rendering a car with no history.
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} from data.gov.il`);
+  }
 
   const json = (await response.json()) as DatastoreSearchResponse<T>;
-  if (!json.success || !json.result) return [];
+  if (!json.success || !json.result) {
+    throw new Error('Malformed datastore response');
+  }
   return json.result.records;
 }
 
-/** Swallow anything that isn't an abort, so one bad join can't sink the page. */
-async function soft<T>(work: Promise<T>, fallback: T, signal: AbortSignal): Promise<T> {
+/**
+ * Swallow anything that isn't an abort, so one bad join can't sink the page —
+ * but record which join it was, so the UI can offer to try again.
+ */
+async function soft<T>(
+  work: Promise<T>,
+  fallback: T,
+  signal: AbortSignal,
+  failures: string[],
+  key: string
+): Promise<T> {
   try {
     return await work;
   } catch (err) {
     if (signal.aborted) throw err;
+    failures.push(key);
     return fallback;
   }
 }
@@ -120,6 +137,8 @@ const EMPTY: VehicleEnrichment = {
   history: null,
   recalls: [],
   ownership: [],
+  failed: [],
+  incomplete: false,
 };
 
 /**
@@ -137,6 +156,7 @@ export async function fetchEnrichment(
   const plateNumber = toInt(plate);
 
   const hasModelKey = tozeretCd !== null && degemCd !== null;
+  const failed: string[] = [];
 
   const [modelSpec, price, history, recalls, ownership] = await Promise.all([
     hasModelKey
@@ -149,7 +169,9 @@ export async function fetchEnrichment(
             signal
           ),
           null,
-          signal
+          signal,
+          failed,
+          'modelSpecs'
         )
       : Promise.resolve(null),
     hasModelKey
@@ -162,11 +184,13 @@ export async function fetchEnrichment(
             signal
           ),
           null,
-          signal
+          signal,
+          failed,
+          'priceList'
         )
       : Promise.resolve(null),
     plateNumber !== null
-      ? soft(queryHistory(plateNumber, signal), null, signal)
+      ? soft(queryHistory(plateNumber, signal), null, signal, failed, 'history')
       : Promise.resolve(null),
     plateNumber !== null
       ? soft(
@@ -177,7 +201,9 @@ export async function fetchEnrichment(
             10
           ),
           [],
-          signal
+          signal,
+          failed,
+          'openRecalls'
         )
       : Promise.resolve([]),
     plateNumber !== null
@@ -190,12 +216,22 @@ export async function fetchEnrichment(
             'baalut_dt asc'
           ),
           [],
-          signal
+          signal,
+          failed,
+          'ownership'
         )
       : Promise.resolve([]),
   ]);
 
-  return { modelSpec, price, history, recalls, ownership };
+  return {
+    modelSpec,
+    price,
+    history,
+    recalls,
+    ownership,
+    failed,
+    incomplete: failed.length > 0,
+  };
 }
 
 export { EMPTY as EMPTY_ENRICHMENT };

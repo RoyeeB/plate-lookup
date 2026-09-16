@@ -41,6 +41,8 @@ export const he = {
     insecureTitle: 'נדרש חיבור מאובטח',
     insecureBody:
       'דפדפנים מאפשרים גישה למצלמה רק באתרים מאובטחים (HTTPS) או ב-localhost. פתחו את האתר ב-HTTPS או הקלידו את המספר ידנית.',
+    torchOn: 'הדלק פנס',
+    torchOff: 'כבה פנס',
   },
 
   // Permissions
@@ -66,6 +68,36 @@ export const he = {
     copyVin: 'הועתק מספר השלדה',
     copyHint: 'לחיצה ארוכה להעתקה',
     searchAgain: 'חיפוש חדש',
+  },
+
+  // Licence validity ("טסט") — the one field a buyer or driver may need to act on.
+  license: {
+    expiredTitle: 'רישיון הרכב פג תוקף',
+    expiredBody:
+      'תוקף רישיון הרכב (טסט) פג בתאריך {date}. נהיגה ללא רישיון בתוקף אינה חוקית, וייתכן שכיסוי הביטוח אינו תקף.',
+    soonTitle: 'הרישיון עומד לפוג',
+    soonBody: 'תוקף רישיון הרכב (טסט) יפוג בתאריך {date}. מומלץ לקבוע טסט.',
+    validTitle: 'הרישיון בתוקף',
+    validBody: 'תוקף רישיון הרכב (טסט) עד {date}.',
+    daysAgo: 'לפני {n} ימים',
+    daysLeft: 'בעוד {n} ימים',
+    today: 'היום',
+    yesterday: 'אתמול',
+    tomorrow: 'מחר',
+  },
+
+  // Sharing a result
+  share: {
+    action: 'שתף',
+    copied: 'הקישור הועתק',
+    failed: 'לא ניתן לשתף מדפדפן זה',
+    subject: 'פרטי רכב {plate}',
+  },
+
+  // Partially-failed enrichment
+  enrichment: {
+    partialTitle: 'חלק מהנתונים המשלימים לא נטענו',
+    partialBody: 'הפרטים הרשמיים שלמעלה מלאים. אפשר לנסות לטעון את השאר שוב.',
   },
 
   // Labels for official registry fields (data.gov.il keys → Hebrew)
@@ -210,6 +242,10 @@ export const he = {
     offlineBody: 'נדרש חיבור לאינטרנט כדי לאתר פרטי רכב.',
     retry: 'נסה שוב',
     back: 'חזרה',
+    // Unhandled render error caught by the error boundary.
+    crashTitle: 'משהו השתבש',
+    crashBody: 'אירעה שגיאה בלתי צפויה בתצוגה. רענון העמוד בדרך כלל פותר את הבעיה.',
+    reload: 'רענן את העמוד',
   },
 } as const;
 

@@ -2,11 +2,17 @@
  * Design tokens, ported 1:1 from the native app's src/theme/index.ts so the
  * web build stays visually identical. Keep every color / spacing / radius
  * value here.
+ *
+ * Dark mode: everything below the plate-motif constants is theme-aware, via
+ * a `prefers-color-scheme: dark` override block. The plate motif itself
+ * (yellow field / black border / blue strip) is the brand and always stays
+ * yellow-on-black regardless of theme, so those three variables are never
+ * touched by the dark override.
  */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
-  /* Israeli plate motif */
+  /* Israeli plate motif — brand constants, same in light and dark. */
   --plate-yellow: #f4c400;
   --plate-yellow-dark: #d9ae00;
   --plate-black: #111111;
@@ -71,4 +77,106 @@
 
   /* Phone-width column the whole app is centred in, like the native screen. */
   --app-max-width: 560px;
+
+  /*
+   * Component-specific tokens for colours that used to be hard-coded in
+   * app.css. Defined here (rather than inline) so the dark override below
+   * has something to repoint; values are unchanged from what app.css had.
+   */
+  --shadow-shell: 0 0 40px rgba(0, 0, 0, 0.06);
+  --estimates-cell-bg: rgba(255, 255, 255, 0.7);
+  --estimates-border: rgba(79, 70, 229, 0.15);
+  --price-card-from: #111827;
+  --price-card-to: #1f2937;
+  --toast-bg: rgba(17, 17, 17, 0.92);
+  /* Placeholder sits on the always-yellow plate field, so it never changes. */
+  --plate-placeholder: rgba(17, 17, 17, 0.35);
+  --recall-bg: rgba(220, 38, 38, 0.07);
+  --recall-border: rgba(220, 38, 38, 0.28);
+  --inactive-bg: rgba(217, 119, 6, 0.12);
+
+  /*
+   * The primary CTA is near-black, which works on a white page but would
+   * vanish into a near-black one — so it inverts in dark mode rather than
+   * staying a fixed colour.
+   */
+  --btn-primary-bg: #111111;
+  --btn-primary-fg: #ffffff;
+
+  /* Text on a solid --warning fill, which is far brighter in dark mode. */
+  --banner-warning-fg: #ffffff;
+
+  /* Licence-validity banner tints, one per state. */
+  --license-expired-bg: rgba(220, 38, 38, 0.07);
+  --license-expired-border: rgba(220, 38, 38, 0.28);
+  --license-soon-bg: rgba(217, 119, 6, 0.1);
+  --license-soon-border: rgba(217, 119, 6, 0.3);
+  --license-valid-bg: rgba(22, 163, 74, 0.08);
+  --license-valid-border: rgba(22, 163, 74, 0.25);
+}
+
+/*
+ * Dark override. Only surfaces / text / borders / states / shadows change —
+ * the plate motif (yellow/black/blue) is intentionally left alone so the
+ * brand reads the same in both themes.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Surfaces (surface kept level with background; elevation reads via
+       borders + a stronger shadow instead of a lighter card colour). */
+    --background: #0f1115;
+    --surface: #0f1115;
+    --surface-muted: #1a1d23;
+    --surface-estimate: #141c30;
+
+    /* Text */
+    --text: #f1f2f4;
+    --text-secondary: #9aa1ac;
+
+    /* Lines / borders */
+    --border: #262b33;
+    --border-strong: #f4f4f4;
+
+    /* Accents / states — brightened so they still pass contrast on a dark
+       background (this app gets read outdoors, on a phone). */
+    --info: #818cf8;
+    --success: #4ade80;
+    --danger: #f87171;
+    --warning: #fbbf24;
+
+    --overlay: rgba(0, 0, 0, 0.6);
+
+    --skeleton-base: #242830;
+
+    --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.5);
+    --shadow-shell: 0 0 40px rgba(0, 0, 0, 0.6);
+
+    --estimates-cell-bg: rgba(255, 255, 255, 0.08);
+    --estimates-border: rgba(129, 140, 248, 0.35);
+
+    --price-card-from: #1f2937;
+    --price-card-to: #334155;
+
+    --toast-bg: rgba(38, 41, 46, 0.95);
+
+    --recall-bg: rgba(220, 38, 38, 0.18);
+    --recall-border: rgba(248, 113, 113, 0.4);
+    --inactive-bg: rgba(251, 191, 36, 0.18);
+
+    /* Inverted: a light button with dark text, so the CTA is still a button. */
+    --btn-primary-bg: #f1f2f4;
+    --btn-primary-fg: #111111;
+
+    /* White on bright amber is ~1.9:1; near-black on it is ~10:1. */
+    --banner-warning-fg: #111111;
+
+    /* The 7-8% light tints disappear on a dark page — lift them, and lean on
+       the border for definition. */
+    --license-expired-bg: rgba(248, 113, 113, 0.15);
+    --license-expired-border: rgba(248, 113, 113, 0.4);
+    --license-soon-bg: rgba(251, 191, 36, 0.15);
+    --license-soon-border: rgba(251, 191, 36, 0.4);
+    --license-valid-bg: rgba(74, 222, 128, 0.13);
+    --license-valid-border: rgba(74, 222, 128, 0.35);
+  }
 }

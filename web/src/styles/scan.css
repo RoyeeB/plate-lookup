@@ -92,7 +92,7 @@
   top: max(var(--sp-sm), env(safe-area-inset-top));
   inset-inline: var(--sp-lg);
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
 .scan__icon-button {

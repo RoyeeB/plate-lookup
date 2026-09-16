@@ -165,4 +165,12 @@ export interface VehicleEnrichment {
   recalls: RecallRaw[];
   /** Chronological ownership transfers; empty when the car predates the log. */
   ownership: OwnershipRaw[];
+  /**
+   * Joins whose request actually failed — as opposed to returning no rows,
+   * which is normal. Without this the two are indistinguishable on screen and a
+   * server error looks exactly like "this car has no history".
+   */
+  failed: string[];
+  /** True when at least one join failed, so the page is showing partial data. */
+  incomplete: boolean;
 }

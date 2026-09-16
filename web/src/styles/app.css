@@ -1,4 +1,5 @@
 @import './theme.css';
+@import './screens.css';
 
 /* ---------- Reset / base ---------- */
 *,
@@ -43,7 +44,7 @@ button {
   background: var(--background);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-shell);
 }
 
 .app-header {
@@ -189,7 +190,7 @@ button {
 }
 
 .plate-field__input::placeholder {
-  color: rgba(17, 17, 17, 0.35);
+  color: var(--plate-placeholder);
   letter-spacing: 2px;
 }
 
@@ -266,9 +267,9 @@ button {
 }
 
 .btn--primary {
-  background: var(--plate-black);
-  border-color: var(--plate-black);
-  color: #fff;
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
 }
 
 .btn--plate {
@@ -427,7 +428,7 @@ button.spec-row:hover {
 /* ---------- Estimates card ---------- */
 .estimates {
   background: var(--surface-estimate);
-  border: 1px solid rgba(79, 70, 229, 0.15);
+  border: 1px solid var(--estimates-border);
   border-radius: var(--r-lg);
   padding: var(--sp-lg);
 }
@@ -460,7 +461,7 @@ button.spec-row:hover {
 }
 
 .estimates__cell {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--estimates-cell-bg);
   border-radius: var(--r-md);
   padding: var(--sp-md) var(--sp-lg);
   text-align: center;
@@ -489,7 +490,7 @@ button.spec-row:hover {
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
-  background: rgba(217, 119, 6, 0.12);
+  background: var(--inactive-bg);
   border-radius: var(--r-md);
   padding: var(--sp-md);
   color: var(--warning);
@@ -617,7 +618,7 @@ button.spec-row:hover {
 }
 
 .toast__body {
-  background: rgba(17, 17, 17, 0.92);
+  background: var(--toast-bg);
   color: #fff;
   font-size: var(--fs-sm);
   font-weight: 600;
@@ -637,7 +638,7 @@ button.spec-row:hover {
 /* ---------- Offline banner ---------- */
 .offline-banner {
   background: var(--warning);
-  color: #fff;
+  color: var(--banner-warning-fg);
   font-size: var(--fs-sm);
   font-weight: 700;
   text-align: center;
@@ -654,8 +655,9 @@ button.spec-row:hover {
 
 /* ---------- Price card ---------- */
 .price-card {
-  background: linear-gradient(135deg, #111827, #1f2937);
+  background: linear-gradient(135deg, var(--price-card-from), var(--price-card-to));
   color: #fff;
+  border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: var(--sp-lg);
 }
@@ -749,8 +751,8 @@ button.spec-row:hover {
 
 /* ---------- Open recall ---------- */
 .recall {
-  background: rgba(220, 38, 38, 0.07);
-  border: 1px solid rgba(220, 38, 38, 0.28);
+  background: var(--recall-bg);
+  border: 1px solid var(--recall-border);
   border-radius: var(--r-lg);
   padding: var(--sp-lg);
 }

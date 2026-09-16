@@ -20,6 +20,8 @@ import {
   addRecentSearch,
   clearRecentSearches,
   getRecentSearches,
+  type RecentSearch,
+  type RecentSearchDetails,
 } from '@/lib/recentSearches';
 
 export const vehicleQueryKey = (plate: string) => ['vehicle', normalizePlate(plate)] as const;
@@ -94,15 +96,19 @@ export function isNotFound(error: unknown): boolean {
  * is seeded from storage on first render — no loading flash.
  */
 export function useRecentSearches() {
-  const [recent, setRecent] = useState<string[]>(getRecentSearches);
+  const [recent, setRecent] = useState<RecentSearch[]>(getRecentSearches);
   const queryClient = useQueryClient();
 
   const refresh = useCallback(() => {
     setRecent(getRecentSearches());
   }, []);
 
-  const add = useCallback((plate: string) => {
-    setRecent(addRecentSearch(plate));
+  /**
+   * Called twice per lookup: once on submit with the plate alone, and again
+   * once the record resolves, to fill in what the car actually is.
+   */
+  const add = useCallback((plate: string, details?: RecentSearchDetails) => {
+    setRecent(addRecentSearch(plate, details));
   }, []);
 
   const clear = useCallback(() => {
