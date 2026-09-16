@@ -1,0 +1,49 @@
+# Lint, unit tests and end-to-end tests for the web app on every push and PR.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+      # The e2e suite drives the installed Chrome (channel: 'chrome').
+      - run: npx playwright install --with-deps chrome
+      - run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: web/test-results
+          retention-days: 7
+
+  native-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Type-checks the Expo app and shared/ (the web app is excluded).
+      - run: npx tsc --noEmit
+        continue-on-error: true # known React Native 0.87 canary StyleProp typing errors

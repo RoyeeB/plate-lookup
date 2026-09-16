@@ -28,7 +28,10 @@
 
   /* Text */
   --text: #111827;
-  --text-secondary: #6b7280;
+  /* Secondary text and state colours are darkened just enough to reach WCAG
+     AA (4.5:1) on every surface and tint they sit on — measured by axe in the
+     e2e suite. The app is read outdoors, on phones. */
+  --text-secondary: #5f6773;
 
   /* Lines / borders */
   --border: #e5e7eb;
@@ -37,9 +40,9 @@
   /* Accents / states */
   --primary: #111827;
   --info: #4f46e5;
-  --success: #16a34a;
-  --danger: #dc2626;
-  --warning: #d97706;
+  --success: #15803d;
+  --danger: #c81e1e;
+  --warning: #a3500a;
 
   /* Camera overlay */
   --overlay: rgba(0, 0, 0, 0.55);
